@@ -328,8 +328,32 @@ class ControllerExtensionShippingMeest2 extends Controller {
     }
 
     public function install() {
+
+        $this->load->model('setting/event');
+
+        $this->model_setting_event->addEvent(
+            'meest2_header_assets',
+            'catalog/controller/common/header/before',
+            'extension/module/meest2/addAssets'
+        );
+
+
+        $this->model_setting_event->addEvent(
+            'meest2_after_add_order',
+            'catalog/model/checkout/order/addOrder/after',
+            'extension/module/meest2/afterAddOrder'
+        );
+
         $this->load->model('extension/shipping/meest2');
         $this->model_extension_shipping_meest2->install(true);
+    }
+
+    public function uninstall() {
+
+        $this->load->model('setting/event');
+        $this->model_setting_event->deleteEventByCode('meest2_header_assets');
+        $this->model_setting_event->deleteEventByCode('meest2_after_add_order');
+
     }
 
     public function importBranches() {
@@ -678,6 +702,34 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
+    public function searchCities() {
+        $json = [];
+        $this->load->model('extension/shipping/meest2');
+        
+        $search = isset($this->request->get['search']) ? $this->request->get['search'] : '';
+        
+        // Отримуємо міста з областями з бази даних за пошуковим запитом
+        $query = $this->db->query("
+            SELECT c.city_id, c.name_ua, r.region_name_ua 
+            FROM " . DB_PREFIX . "meest2_cities c
+            LEFT JOIN " . DB_PREFIX . "meest2_regions r ON c.region_id = r.region_id
+            WHERE c.name_ua LIKE '" . $this->db->escape($search) . "%' 
+            ORDER BY c.name_ua ASC 
+            LIMIT 50
+        ");
+        
+        foreach ($query->rows as $row) {
+            $json[] = array(
+                'city_id' => $row['city_id'],
+                'name_ua' => $row['name_ua'],
+                'region_name_ua' => $row['region_name_ua']
+            );
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
     public function orderForm() {
         $this->load->language('extension/shipping/meest2');
 
@@ -724,6 +776,43 @@ class ControllerExtensionShippingMeest2 extends Controller {
             }
 
             $order_info = $this->model_sale_order->getOrder($postData['order_number']);
+
+            // Получаем существующие данные доставки из таблицы meest2_order_shipping_data
+            $existing_shipping_data = $this->model_extension_shipping_meest2->getOrderShippingData($order_info['order_id']);
+            
+            // Нормализуем старые значения shipping_method к новому формату
+            if (!empty($existing_shipping_data['shipping_method'])) {
+                $old_method = $existing_shipping_data['shipping_method'];
+                if ($old_method === 'meest2.warehouse' || $old_method === 'meest2.postomat') {
+                    $existing_shipping_data['shipping_method'] = 'meest2.branch';
+                } elseif ($old_method === 'meest2.courier') {
+                    $existing_shipping_data['shipping_method'] = 'meest2.door';
+                }
+            }
+            
+            // Создаем массив с новыми данными, сохраняя существующие значения для полей, которые не обновляются
+            $shipping_data = array(
+                'shipping_method' => $postData['recipient_delivery_type'] === 'doors' ? 'meest2.door' : 'meest2.branch',
+                'city_code' => $postData['recipient_delivery_type'] === 'doors' ? 
+                    (isset($postData['recipient_city_address']) ? $postData['recipient_city_address'] : '') : 
+                    (isset($postData['recipient_city']) ? $postData['recipient_city'] : ''),
+                'branch_code' => $postData['recipient_delivery_type'] === 'branch' ? 
+                    (isset($postData['recipient_branch']) ? $postData['recipient_branch'] : '') : '',
+                'address_code' => $postData['recipient_delivery_type'] === 'doors' ? 
+                    (isset($postData['recipient_address']) ? $postData['recipient_address'] : '') : '',
+                'building' => $postData['recipient_delivery_type'] === 'doors' ? 
+                    (isset($postData['recipient_building_address']) ? $postData['recipient_building_address'] : '') : '',
+                'region_code' => isset($existing_shipping_data['region_code']) ? $existing_shipping_data['region_code'] : ''
+            );
+            
+            // Если есть существующие данные, объединяем их с новыми, чтобы не потерять поля, которые не обновляются в этой форме
+            if (!empty($existing_shipping_data)) {
+                $shipping_data = array_merge($existing_shipping_data, $shipping_data);
+            }
+            
+            $this->model_extension_shipping_meest2->updateOrderShippingData($order_info['order_id'], $shipping_data);
+
+
 
             $senderPerson = $this->model_extension_shipping_meest2->getContact($this->config->get('shipping_meest2_sender_contact_person'));
 //            $senderPerson = $senderPerson[0];
@@ -805,6 +894,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
             if (!empty($cardForCOD)) {
                 $postInfo['cardForCOD'] = $cardForCOD;
             }
+
 
             try {
                 $response = $this->meestApiV3("https://api.meest.com/v3.0/openAPI/parcel", $postInfo, null, 'POST');
@@ -889,6 +979,49 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
         $data['order_products'] = $order_products_details;
 
+        $total_weight = 0;
+        $total_volume = 0;
+        $max_length = 0;
+        $max_width = 0;
+        $max_height = 0;
+
+        foreach ($order_products_details as $product) {
+            $weight = floatval($product['weight']);
+            $length = floatval($product['length']);
+            $width = floatval($product['width']);
+            $height = floatval($product['height']);
+            $quantity = intval($product['quantity']);
+
+            $total_weight += $weight * $quantity;
+
+            $product_volume = $length * $width * $height * $quantity;
+            $total_volume += $product_volume;
+
+            if ($length > $max_length) $max_length = $length;
+            if ($width > $max_width) $max_width = $width;
+            if ($height > $max_height) $max_height = $height;
+        }
+
+        $box_length = $max_length;
+        $box_width = $max_width;
+        $box_height = $max_height;
+
+        if ($box_length > 0 && $box_width > 0 && $total_volume > 0) {
+            $base_area = $box_length * $box_width;
+            $calculated_height = ceil($total_volume / $base_area);
+
+            if ($calculated_height > $box_height) {
+                $box_height = $calculated_height;
+            }
+        }
+
+        $data['calculated_weight'] = number_format($total_weight, 2, '.', '');
+        $data['calculated_length'] = number_format($box_length, 2, '.', '');
+        $data['calculated_width'] = number_format($box_width, 2, '.', '');
+        $data['calculated_height'] = number_format($box_height, 2, '.', '');
+        $data['calculated_quantity'] = 1;
+        $data['calculated_insurance'] = number_format($order['total'], 2, '.', '');
+
         if ($order) {
             $data['order_id'] = isset($order['order_id']) ? $order['order_id'] : '';
 
@@ -929,7 +1062,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
         }
 
         $data['references']['payment_types'] = $payment_types;
-        
+
         // Устанавливаем значения по умолчанию
         $data['delivery_payer'] = 'Sender';
         $data['payment_type'] = !empty($payment_types[0]['Ref']) ? $payment_types[0]['Ref'] : 'cash';
@@ -973,6 +1106,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $data['sender_phone']  = isset($senderPerson['phone']) ? $senderPerson['phone'] : '';
 
         $data['ajax_get_cities_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getCitiesByRegion', 'user_token=' . $this->session->data['user_token'], true));
+        
+        $data['ajax_search_cities_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/searchCities', 'user_token=' . $this->session->data['user_token'], true));
 
         $data['ajax_get_addresses_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getStreetsByCity', 'user_token=' . $this->session->data['user_token'], true));
 
@@ -1000,12 +1135,54 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $data['cancel'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'], true);
 
         $data['shipping_meest2_recipient'] = $this->config->get('shipping_meest2_recipient');
+        $data['order_shipping_data'] = $this->model_extension_shipping_meest2->getOrderShippingData($data['order_id']);
+
+        // Якщо address_name порожня, але є address_code - спробуємо отримати назву
+        if (empty($data['order_shipping_data']['address_name']) && !empty($data['order_shipping_data']['address_code'])) {
+            // Спочатку перевіряємо в таблиці meest2_streets
+            $street_query = $this->db->query("SELECT name_ua, type_ua FROM " . DB_PREFIX . "meest2_streets WHERE street_id = '" . $this->db->escape($data['order_shipping_data']['address_code']) . "'");
+            if ($street_query->num_rows) {
+                $data['order_shipping_data']['address_name'] = trim($street_query->row['type_ua'] . ' ' . $street_query->row['name_ua']);
+            } else {
+                // Якщо в БД немає - спробуємо отримати з API
+                if (!empty($data['order_shipping_data']['city_code'])) {
+                    require_once(DIR_SYSTEM . 'library/meest.php');
+                    $meest = new Meest($this->registry);
+                    
+                    $result = $meest->geo_streets(['city_id' => $data['order_shipping_data']['city_code']]);
+                    
+                    if (!empty($result['result'])) {
+                        foreach ($result['result'] as $street) {
+                            if ($street['street_id'] === $data['order_shipping_data']['address_code']) {
+                                $data['order_shipping_data']['address_name'] = trim($street['t_ua'] . ' ' . $street['ua']);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (empty($data['order_shipping_data']['address_name'])) {
+                    $data['order_shipping_data']['address_name'] = $data['order_shipping_data']['address_code'];
+                }
+            }
+        }
+        
+        // Отримуємо назву міста з таблиці meest2_cities по UUID
+        if (!empty($data['order_shipping_data']['city_code'])) {
+            $city_query = $this->db->query("SELECT name_ua FROM " . DB_PREFIX . "meest2_cities WHERE city_id = '" . $this->db->escape($data['order_shipping_data']['city_code']) . "'");
+            if ($city_query->num_rows) {
+                $data['order_shipping_data']['city_name'] = $city_query->row['name_ua'];
+            }
+        }
+        
         $data['shipping_meest2_recipient_contact_person'] = $this->config->get('shipping_meest2_recipient_contact_person');
 
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
+
+
 
         $this->response->setOutput($this->load->view('extension/shipping/meest2_order_form', $data));
     }
@@ -1174,7 +1351,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
                 $postInfo['cardForCOD'] = $cardForCOD;
             }
 
-           try {
+            try {
                 $url = "https://api.meest.com/v3.0/openAPI/parcel/" . $postData['meest2_cn_uuid'];
                 $response = $this->meestApiV3($url, $postInfo, null, 'PUT');
 
@@ -1376,7 +1553,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
             }
         } catch (Exception $e) {
             $this->session->data['error'] = $e->getMessage();
-           return $e->getMessage();
+            return $e->getMessage();
         }
 
         $data['header'] = $this->load->controller('common/header');

@@ -1,7 +1,7 @@
 <?php
 // Heading
 //$_['heading_title']           = '<img src="/image/catalog/meest2/icon.png" alt="" />MeestPoshta';
-$_['heading_title']           = 'MeestPoshta';
+$_['heading_title']           = 'Meest Poshta';
 
 // Text
 $_['text_shipping']           = 'Shipping';

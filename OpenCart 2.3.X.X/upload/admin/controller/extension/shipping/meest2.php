@@ -294,9 +294,31 @@ class ControllerExtensionShippingMeest2 extends Controller {
 	}
 
 	public function install() {
-		$this->load->model('extension/shipping/meest2');
+
+		$this->load->model('extension/event');
+
+		        $this->model_extension_event->addEvent(
+            'meest2_header_assets',
+            'catalog/controller/common/header/before',
+            'extension/module/meest2/addAssets'
+        );
+        
+        $this->model_extension_event->addEvent(
+            'meest2_after_add_order',
+            'catalog/model/checkout/order/addOrder/after',
+            'extension/module/meest2/afterAddOrder'
+        );
+
+        $this->load->model('extension/shipping/meest2');
 		$this->model_extension_shipping_meest2->install(true);
-//        $this->branches();
+	}
+
+	public function uninstall() {
+
+		$this->load->model('extension/event');
+        $this->model_extension_event->deleteEventByCode('meest2_header_assets');
+        $this->model_extension_event->deleteEventByCode('meest2_after_add_order');
+
 	}
 
     public function importBranches() {
@@ -622,6 +644,18 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
+    public function searchCities() {
+        $json = [];
+
+        if (isset($this->request->get['search'])) {
+            $this->load->model('extension/shipping/meest2');
+            $json = $this->model_extension_shipping_meest2->searchCities($this->request->get['search']);
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
     public function getStreetsByCity() {
         $json = [];
 
@@ -695,6 +729,22 @@ class ControllerExtensionShippingMeest2 extends Controller {
             }
 
             $order_info = $this->model_sale_order->getOrder($postData['order_number']);
+
+            // Оновлюємо дані доставки в таблиці meest2_order_shipping_data
+            $shipping_data = array(
+                'shipping_method' => $postData['recipient_delivery_type'] === 'doors' ? 'meest2.door' : 'meest2.branch',
+                'city_code' => $postData['recipient_delivery_type'] === 'doors' ? 
+                    (isset($postData['recipient_city_address']) ? $postData['recipient_city_address'] : '') : 
+                    (isset($postData['recipient_city']) ? $postData['recipient_city'] : ''),
+                'branch_code' => $postData['recipient_delivery_type'] === 'branch' ? $postData['recipient_branch'] : '',
+                'address_code' => $postData['recipient_delivery_type'] === 'doors' ? $postData['recipient_address'] : '',
+                'building' => $postData['recipient_delivery_type'] === 'doors' ? 
+                    (isset($postData['recipient_building_address']) ? $postData['recipient_building_address'] : '') : '',
+                'region_code' => ''
+            );
+            $this->model_extension_shipping_meest2->updateOrderShippingData($order_info['order_id'], $shipping_data);
+
+
 
             $senderPerson = $this->model_extension_shipping_meest2->getContact($this->config->get('meest2_sender_contact_person'));
 //            $senderPerson = $senderPerson[0];
@@ -1034,10 +1084,9 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $data['sender_phone']  = isset($senderPerson['phone']) ? $senderPerson['phone'] : '';
 
         $data['ajax_get_cities_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getCitiesByRegion', 'token=' . $this->session->data['token'], true));
-
         $data['ajax_get_addresses_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getStreetsByCity', 'token=' . $this->session->data['token'], true));
-
         $data['ajax_get_branches_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getBranchesByCity', 'token=' . $this->session->data['token'], true));
+        $data['ajax_search_cities_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/searchCities', 'token=' . $this->session->data['token'], true));
 
         $this->load->model('setting/setting');
 
@@ -1061,6 +1110,57 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $data['meest2_recipient'] = $this->config->get('meest2_recipient');
         $data['meest2_recipient_contact_person'] = $this->config->get('meest2_recipient_contact_person');
 
+        $data['order_shipping_data'] = $this->model_extension_shipping_meest2->getOrderShippingData($data['order_id']);
+
+        // Якщо address_name порожня, але є address_code - спробуємо отримати назву
+        if (empty($data['order_shipping_data']['address_name']) && !empty($data['order_shipping_data']['address_code'])) {
+            // Спочатку перевіряємо в таблиці meest2_streets
+            $street_query = $this->db->query("SELECT name_ua, type_ua FROM " . DB_PREFIX . "meest2_streets WHERE street_id = '" . $this->db->escape($data['order_shipping_data']['address_code']) . "'");
+            if ($street_query->num_rows) {
+                $data['order_shipping_data']['address_name'] = trim($street_query->row['type_ua'] . ' ' . $street_query->row['name_ua']);
+            } else {
+                // Якщо в БД немає - спробуємо отримати з API
+                if (!empty($data['order_shipping_data']['city_code'])) {
+                    require_once(DIR_SYSTEM . 'library/meest.php');
+                    $meest = new Meest($this->registry);
+                    
+                    $result = $meest->geo_streets(['city_id' => $data['order_shipping_data']['city_code']]);
+                    
+                    if (!empty($result['result'])) {
+                        foreach ($result['result'] as $street) {
+                            if ($street['street_id'] === $data['order_shipping_data']['address_code']) {
+                                $data['order_shipping_data']['address_name'] = trim($street['t_ua'] . ' ' . $street['ua']);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (empty($data['order_shipping_data']['address_name'])) {
+                    $data['order_shipping_data']['address_name'] = $data['order_shipping_data']['address_code'];
+                }
+            }
+        }
+        
+        $data['recipient_branch_name'] = '';
+        if (!empty($data['order_shipping_data'])) {
+            // Отримуємо назву міста з таблиці meest2_cities по UUID
+            if (!empty($data['order_shipping_data']['city_code'])) {
+                $city_query = $this->db->query("SELECT name_ua FROM " . DB_PREFIX . "meest2_cities WHERE city_id = '" . $this->db->escape($data['order_shipping_data']['city_code']) . "'");
+                if ($city_query->num_rows) {
+                    $data['order_shipping_data']['city_name'] = $city_query->row['name_ua'];
+                }
+            }
+
+            // Отримуємо назву відділення
+            if (!empty($data['order_shipping_data']['branch_code'])) {
+                $branch_query = $this->db->query("SELECT short_name, address_more_information FROM " . DB_PREFIX . "meest2_branch WHERE branch_id = '" . $this->db->escape($data['order_shipping_data']['branch_code']) . "'");
+                if ($branch_query->num_rows) {
+                    $data['recipient_branch_name'] = $branch_query->row['short_name'] . ' (' . $branch_query->row['address_more_information'] . ')';
+                    $data['order_shipping_data']['branch_name'] = $data['recipient_branch_name'];
+                }
+            }
+        }
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');

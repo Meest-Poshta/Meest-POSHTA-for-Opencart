@@ -189,6 +189,7 @@ class MeestExpress extends Model
     {
         $this->load->language('extension/MeestExpress/shipping/meest_express');
 
+
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "zone_to_geo_zone 
                                     WHERE geo_zone_id = '" . (int)$this->config->get('free_geo_zone_id') . "' 
                                     AND country_id = '" . (int)$address['country_id'] . "' 
@@ -334,10 +335,6 @@ class MeestExpress extends Model
                     'error' => $errorData
                 ];
 
-                if ($key == $length - 1) {
-                    $html = $this->load->controller('extension/MeestExpress/shipping/meest_express', $data);
-                    $quote_data[$service]['title'] = $quote_data[$service]['title'] . $html;
-                }
             }
 
             if($checkoutCode && !empty($errorMessage)) {
@@ -608,12 +605,12 @@ class MeestExpress extends Model
     // ========== МЕТОДЫ ДЛЯ CRON ИМПОРТА ==========
 
     public function getRegion(string $region_id): array {
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "meest2_regions` WHERE `region_id` = '" . $this->db->escape($region_id) . "'");
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "meest_express_regions` WHERE `region_id` = '" . $this->db->escape($region_id) . "'");
         return $query->row;
     }
 
     public function addRegion($data) {
-        $this->db->query("INSERT INTO `" . DB_PREFIX . "meest2_regions` SET
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "meest_express_regions` SET
             `region_id` = '" . $this->db->escape($data['region_id']) . "',
             `region_name_ua` = '" . $this->db->escape($data['region_name_ua']) . "',
             `region_name_en` = '" . $this->db->escape($data['region_name_en']) . "',
@@ -623,7 +620,7 @@ class MeestExpress extends Model
     }
 
     public function editRegion($region_id, $data) {
-        $this->db->query("UPDATE `" . DB_PREFIX . "meest2_regions` SET
+        $this->db->query("UPDATE `" . DB_PREFIX . "meest_express_regions` SET
             `region_name_ua` = '" . $this->db->escape($data['region_name_ua']) . "',
             `region_name_en` = '" . $this->db->escape($data['region_name_en']) . "',
             `country_id` = '" . $this->db->escape($data['country_id']) . "',
@@ -633,7 +630,7 @@ class MeestExpress extends Model
     }
 
     public function getAllCities() {
-        $query = $this->db->query("SELECT city_id FROM " . DB_PREFIX . "meest2_cities");
+        $query = $this->db->query("SELECT city_id FROM " . DB_PREFIX . "meest_express_cities");
         $cities = [];
         foreach ($query->rows as $row) {
             $cities[$row['city_id']] = $row['city_id'];
@@ -649,14 +646,14 @@ class MeestExpress extends Model
             $values[] = "('" . $this->db->escape($row['city_id']) . "', '" . $this->db->escape($row['name_ua']) . "', '" . $this->db->escape($row['name_ru']) . "', '" . $this->db->escape($row['type_ua']) . "', '" . $this->db->escape($row['district_id']) . "', '" . $this->db->escape($row['region_id']) . "', '" . $this->db->escape($row['koatuu']) . "', '" . (int)$row['delivery_in_city'] . "')";
         }
 
-        $sql = "INSERT INTO `" . DB_PREFIX . "meest2_cities` (`city_id`, `name_ua`, `name_ru`, `type_ua`, `district_id`, `region_id`, `koatuu`, `delivery_in_city`)
+        $sql = "INSERT INTO `" . DB_PREFIX . "meest_express_cities` (`city_id`, `name_ua`, `name_ru`, `type_ua`, `district_id`, `region_id`, `koatuu`, `delivery_in_city`)
             VALUES " . implode(',', $values);
         $this->db->query($sql);
     }
 
     public function bulkUpdateCities($data) {
         foreach ($data as $row) {
-            $this->db->query("UPDATE " . DB_PREFIX . "meest2_cities SET
+            $this->db->query("UPDATE " . DB_PREFIX . "meest_express_cities SET
             name_ua = '" . $this->db->escape($row['name_ua']) . "',
             name_ru = '" . $this->db->escape($row['name_ru']) . "',
             type_ua = '" . $this->db->escape($row['type_ua']) . "',
@@ -784,7 +781,7 @@ class MeestExpress extends Model
     }
 
     public function getAllStreetIds(): array {
-        $query = $this->db->query("SELECT `street_id` FROM `" . DB_PREFIX . "meest2_streets`");
+        $query = $this->db->query("SELECT `street_id` FROM `" . DB_PREFIX . "meest_express_streets`");
         return array_column($query->rows, 'street_id');
     }
 
@@ -808,7 +805,7 @@ class MeestExpress extends Model
         }
 
         if (!empty($values)) {
-            $this->db->query("INSERT INTO " . DB_PREFIX . "meest2_streets (
+            $this->db->query("INSERT INTO " . DB_PREFIX . "meest_express_streets (
             street_id,
             type_ua,
             type_ru,
@@ -827,7 +824,7 @@ class MeestExpress extends Model
 
     public function bulkUpdateStreets($data) {
         foreach ($data as $row) {
-            $this->db->query("UPDATE " . DB_PREFIX . "meest2_streets SET
+            $this->db->query("UPDATE " . DB_PREFIX . "meest_express_streets SET
                 type_ua = '" . $this->db->escape($row['type_ua']) . "',
                 type_ru = '" . $this->db->escape($row['type_ru']) . "',
                 name_ua = '" . $this->db->escape($row['name_ua']) . "',
@@ -1150,6 +1147,25 @@ class MeestExpress extends Model
         $sql .= " ORDER BY short_name";
 
         return $this->db->query($sql)->rows;
+    }
+
+    public function saveOrderShippingData($order_id, $data) {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "meest_express_order_shipping_data` SET
+            order_id = '" . (int)$order_id . "',
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "'
+            ON DUPLICATE KEY UPDATE
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "'
+        ");
     }
 
 }

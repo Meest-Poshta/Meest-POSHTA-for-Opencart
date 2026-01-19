@@ -356,6 +356,12 @@
                                 <input disabled id="meestAddress" type="text" class="form-control" placeholder="<?php echo $text_meest2_courier; ?>"/>
                             </div>
                         </div>
+                        <div class="meest2-field-wrapper">
+                            <div class="meest2-input-group">
+                                <label>Будинок/Квартира</label>
+                                <input id="meestBuilding" type="text" class="form-control" placeholder="Будинок/Квартира"/>
+                            </div>
+                        </div>
                     </div>
                 `;
                     active_ship.parent().after(container);

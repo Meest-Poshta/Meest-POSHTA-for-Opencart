@@ -43,56 +43,56 @@
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover">
                                 <thead>
-                                    <tr>
-                                        <th><input type="checkbox" id="select-all-orders" class="form-check-input"></th>
-                                        <th><a href="{{ url_link }}&sort=order_id&order={{ sort == 'order_id' and order == 'ASC' ? 'DESC' : 'ASC' }}">{{ column_order_id }}</a></th>
-                                        <th>{{ column_status }}</th>
-                                        <th><a href="{{ url_link }}&sort=date_added&order={{ sort == 'date_added' and order == 'ASC' ? 'DESC' : 'ASC' }}">{{ column_date_added }}</a></th>
-                                        <th>{{ column_action }}</th>
-                                    </tr>
+                                <tr>
+                                    <th><input type="checkbox" id="select-all-orders" class="form-check-input"></th>
+                                    <th><a href="{{ url_link }}&sort=order_id&order={{ sort == 'order_id' and order == 'ASC' ? 'DESC' : 'ASC' }}">{{ column_order_id }}</a></th>
+                                    <th>{{ column_status }}</th>
+                                    <th><a href="{{ url_link }}&sort=date_added&order={{ sort == 'date_added' and order == 'ASC' ? 'DESC' : 'ASC' }}">{{ column_date_added }}</a></th>
+                                    <th>{{ column_action }}</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {% if orders %}
-                                        {% for order in orders %}
-                                            <tr>
-                                                <td><input type="checkbox" class="order-checkbox form-check-input" value="{{ order.order_id }}"></td>
-                                                <td>{{ order.order_id }}</td>
-                                                <td id="order-status-{{ order.order_id }}">{{ order.status }}</td>
-                                                <td>{{ order.date_added }}</td>
-                                                <td class="meest-action-{{ order.order_id }}">
-                                                    <div class="btn-group">
-                                                        <button type="button"
-                                                                class="btn btn-danger dropdown-toggle dropdown-btn"
-                                                                data-bs-toggle="dropdown"
-                                                                aria-haspopup="true"
-                                                                aria-expanded="false"
-                                                                style="background-color: #EBF1FB !important; border: none !important; border-radius: 5px !important; width: 60px; height: 37px; display: inline-flex; align-items: center; justify-content: space-between; color: #0061AF !important; padding: 0 8px; cursor: pointer;">
-                                                            <i class="fas fa-file-alt" style="font-size: 16px; color: #0061AF !important; margin-left: 5px;"></i>
-                                                            <span style="display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid #0061AF;"></span>
-                                                        </button>
-
-                                                        <ul class="dropdown-menu">
-                                                            {% if order.meest2_cn_uuid != 'None' and order.meest2_cn_uuid is not empty %}
-                                                                <li><a href="{{ get_parcel_info }}&parcel_id={{ order.meest2_cn_uuid }}" class="dropdown-item">View Meest CN Info</a></li>
-                                                                <li><a href="{{ order_update_form }}&parcel_id={{ order.meest2_cn_uuid }}" class="dropdown-item">Edit Meest CN</a></li>
-                                                            {% else %}
-                                                                <li><a href="{{ order_form }}&order_id={{ order.order_id }}" class="dropdown-item">Create Meest CN</a></li>
-                                                            {% endif %}
-                                                        </ul>
-                                                    </div>
-                                                    {% if order.meest2_registerID %}
-                                                        <button type="button" class="btn btn-danger" onclick="unregisterPickup('{{ order.meest2_registerID }}', '{{ order.order_id }}')">{{ button_unregister }}</button>
-                                                    {% elseif order.meest2_cn_uuid and order.meest2_sender_address_pick_up %}
-                                                        <button type="button" class="btn btn-primary" onclick="openModal({{ order.order_id }})">{{ button_create_pickup }}</button>
-                                                   {% endif %}
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% else %}
+                                {% if orders %}
+                                    {% for order in orders %}
                                         <tr>
-                                            <td colspan="5" class="text-center">{{ text_no_orders }}</td>
+                                            <td><input type="checkbox" class="order-checkbox form-check-input" value="{{ order.order_id }}"></td>
+                                            <td>{{ order.order_id }}</td>
+                                            <td id="order-status-{{ order.order_id }}">{{ order.status }}</td>
+                                            <td>{{ order.date_added }}</td>
+                                            <td class="meest-action-{{ order.order_id }}">
+                                                <div class="btn-group">
+                                                    <button type="button"
+                                                            class="btn btn-danger dropdown-toggle dropdown-btn"
+                                                            data-bs-toggle="dropdown"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            style="background-color: #EBF1FB !important; border: none !important; border-radius: 5px !important; width: 60px; height: 37px; display: inline-flex; align-items: center; justify-content: space-between; color: #0061AF !important; padding: 0 8px; cursor: pointer;">
+                                                        <i class="fas fa-file-alt" style="font-size: 16px; color: #0061AF !important; margin-left: 5px;"></i>
+                                                        <span style="display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid #0061AF;"></span>
+                                                    </button>
+
+                                                    <ul class="dropdown-menu">
+                                                        {% if order.meest_express_cn_uuid != 'None' and order.meest_express_cn_uuid is not empty %}
+                                                            <li><a href="{{ get_parcel_info }}&parcel_id={{ order.meest_express_cn_uuid }}" class="dropdown-item">View Meest CN Info</a></li>
+                                                            <li><a href="{{ order_update_form }}&parcel_id={{ order.meest_express_cn_uuid }}" class="dropdown-item">Edit Meest CN</a></li>
+                                                        {% else %}
+                                                            <li><a href="{{ order_form }}&order_id={{ order.order_id }}" class="dropdown-item">Create Meest CN</a></li>
+                                                        {% endif %}
+                                                    </ul>
+                                                </div>
+                                                {% if order.meest_express_registerID %}
+                                                    <button type="button" class="btn btn-danger" onclick="unregisterPickup('{{ order.meest_express_registerID }}', '{{ order.order_id }}')">{{ button_unregister }}</button>
+                                                {% elseif order.meest_express_cn_uuid and order.meest_express_sender_address_pick_up %}
+                                                    <button type="button" class="btn btn-primary" onclick="openModal({{ order.order_id }})">{{ button_create_pickup }}</button>
+                                                {% endif %}
+                                            </td>
                                         </tr>
-                                    {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">{{ text_no_orders }}</td>
+                                    </tr>
+                                {% endif %}
                                 </tbody>
                             </table>
                         </div>
@@ -104,7 +104,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="callModal" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">

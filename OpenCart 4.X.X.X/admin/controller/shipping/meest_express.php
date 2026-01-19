@@ -304,6 +304,7 @@ class MeestExpress extends Controller
         // Delete old events if exist
         $this->model_setting_event->deleteEventByCode('meest_express_admin_header');
         $this->model_setting_event->deleteEventByCode('meest_express_column_left');
+
         
         // Register event based on OpenCart version
         if (defined('VERSION') && VERSION == '4.0.0.0') {
@@ -313,6 +314,21 @@ class MeestExpress extends Controller
                 'Inject Meest Express JavaScript into admin header',
                 'admin/view/sale/order_list/after',
                 'extension/MeestExpress/shipping/meest_express.addMeestOrderButtons'
+            );
+
+            $this->model_setting_event->addEvent(
+                'meest_express_addAssets',
+                'Save Meest Express shipping data after order creation',
+                'catalog/controller/common/header/before',
+                'extension/MeestExpress/shipping/meest_express.addAssets'
+            );
+
+            
+            $this->model_setting_event->addEvent(
+                'meest_express_after_add_order',
+                'Save Meest Express shipping data after order creation',
+                'catalog/model/checkout/order/addOrder/after',
+                'extension/MeestExpress/shipping/meest_express.afterAddOrder'
             );
         } else {
             // For other versions: addEvent($data)
@@ -325,6 +341,27 @@ class MeestExpress extends Controller
                 'sort_order' => 999
             ];
             $this->model_setting_event->addEvent($event_data);
+
+            $event_data_checkout = [
+                'code' => 'meest_express_addAssets',
+                'description' => 'Inject Meest Express JavaScript into admin header',
+                'trigger' => 'catalog/controller/common/header/before',
+                'action' => 'extension/MeestExpress/shipping/meest_express.addAssets',
+                'status' => 1,
+                'sort_order' => 999
+            ];
+
+            $this->model_setting_event->addEvent($event_data_checkout);
+            
+            $event_data_after_order = [
+                'code' => 'meest_express_after_add_order',
+                'description' => 'Save Meest Express shipping data after order creation',
+                'trigger' => 'catalog/model/checkout/order/addOrder/after',
+                'action' => 'extension/MeestExpress/shipping/meest_express.afterAddOrder',
+                'status' => 1,
+                'sort_order' => 999
+            ];
+            $this->model_setting_event->addEvent($event_data_after_order);
         }
         
         // Return installation data for OpenCart 4.0
@@ -348,7 +385,8 @@ class MeestExpress extends Controller
         // Unregister all events
         $this->load->model('setting/event');
         $this->model_setting_event->deleteEventByCode('meest_express_admin_header');
-        $this->model_setting_event->deleteEventByCode('meest_express_column_left');
+        $this->model_setting_event->deleteEventByCode('meest_express_addAssets');
+        $this->model_setting_event->deleteEventByCode('meest_express_after_add_order');
         
         return [
             'code' => 'meest_express'
@@ -647,9 +685,15 @@ class MeestExpress extends Controller
     {
         $json = [];
 
-        if (isset($this->request->get['region_id'])) {
+        $this->load->model('extension/MeestExpress/shipping/meest_express');
+        
+        if (isset($this->request->get['search']) && !empty($this->request->get['search'])) {
+            // Search cities by name
+            $search = $this->request->get['search'];
+            $json = $this->model_extension_MeestExpress_shipping_meest_express->searchCities($search);
+        } elseif (isset($this->request->get['region_id'])) {
+            // Get cities by region
             $region_id = $this->request->get['region_id'];
-            $this->load->model('extension/MeestExpress/shipping/meest_express');
             $json = $this->model_extension_MeestExpress_shipping_meest_express->getCitiesByRegion($region_id);
         }
 
@@ -664,7 +708,13 @@ class MeestExpress extends Controller
         if (isset($this->request->get['city_id'])) {
             $this->load->model('extension/MeestExpress/shipping/meest_express');
             $city_id = $this->request->get['city_id'];
-            $json = $this->model_extension_MeestExpress_shipping_meest_express->getStreetsByCity($city_id);
+            $search = isset($this->request->get['search']) ? $this->request->get['search'] : '';
+            
+            if (!empty($search)) {
+                $json = $this->model_extension_MeestExpress_shipping_meest_express->searchStreetsByCity($city_id, $search);
+            } else {
+                $json = $this->model_extension_MeestExpress_shipping_meest_express->getStreetsByCity($city_id);
+            }
         }
 
         $this->response->addHeader('Content-Type: application/json');
@@ -1066,6 +1116,19 @@ setTimeout(function() {
 
             $order_info = $this->model_sale_order->getOrder($postData['order_number']);
 
+            // Оновлюємо дані доставки в таблиці meest2_order_shipping_data
+            $shipping_data = array(
+                'shipping_method' => $postData['recipient_delivery_type'] === 'doors' ? 'meest2.door' : 'meest2.branch',
+                'city_code' => $postData['recipient_delivery_type'] === 'doors' ? 
+                    (isset($postData['recipient_city_address']) ? $postData['recipient_city_address'] : '') : 
+                    (isset($postData['recipient_city']) ? $postData['recipient_city'] : ''),
+                'branch_code' => $postData['recipient_delivery_type'] === 'branch' ? $postData['recipient_branch'] : '',
+                'address_code' => $postData['recipient_delivery_type'] === 'doors' ? $postData['recipient_address'] : '',
+                'building' => $postData['recipient_delivery_type'] === 'doors' && isset($postData['recipient_building_address']) ? $postData['recipient_building_address'] : '',
+                'region_code' => ''
+            );
+            $this->model_extension_MeestExpress_shipping_meest_express->updateOrderShippingData($order_info['order_id'], $shipping_data);
+
             $senderPerson = $this->model_extension_MeestExpress_shipping_meest_express->getContact($this->config->get('shipping_meest_express_sender_contact_person'));
             $senderAddressPickUp = 0;
 
@@ -1243,9 +1306,11 @@ setTimeout(function() {
             $data['shipping_zone'] = isset($order['shipping_zone']) ? $order['shipping_zone'] : '';
             $data['shipping_country'] = isset($order['shipping_country']) ? $order['shipping_country'] : '';
             $data['shipping_method'] = isset($order['shipping_method']['name']) ? $order['shipping_method']['name'] : '';
+            $data['original_shipping_method_code'] = isset($order['shipping_method']['code']) ? $order['shipping_method']['code'] : '';
 
             $data['recipient_contact_person'] = $data['shipping_lastname'] . ' ' . $data['shipping_firstname'];
         }
+
 
         $paymentApiMeestData = $this->getPaymentApiMeestData($contractID);
 
@@ -1288,7 +1353,7 @@ setTimeout(function() {
                 $data['shipping_meest_express_' . $field] = $this->config->get('shipping_meest_express_' . $field);
             }
         }
-        
+
         // Also add these for compatibility with JavaScript (meest2 names)
         $data['shipping_meest2_sender_region'] = $this->config->get('shipping_meest_express_sender_region');
         $data['shipping_meest2_sender_city'] = $this->config->get('shipping_meest_express_sender_city');
@@ -1357,26 +1422,81 @@ setTimeout(function() {
 
         $data['shipping_meest_express_recipient'] = $this->config->get('shipping_meest_express_recipient');
         $data['shipping_meest_express_recipient_contact_person'] = $this->config->get('shipping_meest_express_recipient_contact_person');
-        
-        // Get recipient cities and branches based on shipping data
-        $data['recipient_cities'] = [];
-        $data['recipient_branches'] = [];
-        
-        // Try to get recipient region from shipping data
-        $recipient_region_id = null;
-        if (isset($order['shipping_zone_id']) && $order['shipping_zone_id']) {
-            // Try to find region by zone_id
-            foreach ($data['regions'] as $region) {
-                if (isset($region['zone_id']) && $region['zone_id'] == $order['shipping_zone_id']) {
-                    $recipient_region_id = $region['region_id'];
-                    break;
-                }
+
+        $data['order_shipping_data'] = $this->model_extension_MeestExpress_shipping_meest_express->getOrderShippingData($data['order_id']);
+       
+        // Отримуємо назву міста з таблиці meest2_cities по UUID
+        if (!empty($data['order_shipping_data']['city_code'])) {
+            $city_query = $this->db->query("SELECT name_ua FROM " . DB_PREFIX . "meest_express_cities WHERE city_id = '" . $this->db->escape($data['order_shipping_data']['city_code']) . "'");
+            if ($city_query->num_rows) {
+                $data['order_shipping_data']['city_name'] = $city_query->row['name_ua'];
             }
         }
         
-        if ($recipient_region_id) {
-            $data['recipient_cities'] = $this->model_extension_MeestExpress_shipping_meest_express->getCitiesByRegion($recipient_region_id);
+        // Get recipient city, branch, and address data from order_shipping_data
+        $data['recipient_city_data'] = null;
+        $data['recipient_branch_data'] = null;
+        $data['recipient_address_data'] = null;
+        
+        if (!empty($data['order_shipping_data']['city_code'])) {
+            // Get city data by code
+            $city_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_cities WHERE city_id = '" . $this->db->escape($data['order_shipping_data']['city_code']) . "'");
+            if ($city_query->num_rows) {
+                $data['recipient_city_data'] = $city_query->row;
+            }
+        } elseif (!empty($data['shipping_city'])) {
+            // Fallback: try to find city by name from order shipping data
+            $city_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_cities WHERE name_ua LIKE '%" . $this->db->escape($data['shipping_city']) . "%' LIMIT 1");
+            if ($city_query->num_rows) {
+                $data['recipient_city_data'] = $city_query->row;
+            }
         }
+        
+        if (!empty($data['order_shipping_data']['branch_code'])) {
+            // Get branch data
+            $branch_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_branch WHERE branch_id = '" . $this->db->escape($data['order_shipping_data']['branch_code']) . "'");
+            if ($branch_query->num_rows) {
+                $data['recipient_branch_data'] = $branch_query->row;
+            }
+        }
+        
+        if (!empty($data['order_shipping_data']['address_code'])) {
+            // Get address/street data from address_code
+            $address_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_streets WHERE street_id = '" . $this->db->escape($data['order_shipping_data']['address_code']) . "'");
+            if ($address_query->num_rows) {
+                $data['recipient_address_data'] = $address_query->row;
+            } else {
+                // Якщо в БД немає - спробуємо отримати з API
+                if (!empty($data['order_shipping_data']['city_code'])) {
+                    $this->load->library('meest_express/meest');
+                    $meest = new \Opencart\System\Library\MeestExpress\Meest($this->registry);
+                    
+                    $result = $meest->geo_streets(['city_id' => $data['order_shipping_data']['address_code']]);
+                    
+                    if (!empty($result['result'])) {
+                        foreach ($result['result'] as $street) {
+                            if ($street['street_id'] === $data['order_shipping_data']['address_code']) {
+                                // Створюємо масив у форматі, схожому на запис з БД
+                                $data['recipient_address_data'] = [
+                                    'street_id' => $street['street_id'],
+                                    'type_ua' => $street['t_ua'],
+                                    'name_ua' => $street['ua']
+                                ];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } elseif (!empty($data['order_shipping_data']['branch_code']) && (strpos($data['order_shipping_data']['shipping_method'], 'door') !== false || strpos($data['order_shipping_data']['shipping_method'], 'courier') !== false)) {
+            // Fallback: for courier delivery, address might be stored in branch_code
+            $address_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_streets WHERE street_id = '" . $this->db->escape($data['order_shipping_data']['branch_code']) . "'");
+            if ($address_query->num_rows) {
+                $data['recipient_address_data'] = $address_query->row;
+            }
+        }
+
+
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');

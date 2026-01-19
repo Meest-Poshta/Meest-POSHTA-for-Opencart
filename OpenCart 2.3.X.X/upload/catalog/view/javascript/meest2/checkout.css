@@ -1,0 +1,210 @@
+.meest2-container {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.meest2-field-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.meest2-field-wrapper:last-child {
+    margin-bottom: 0;
+}
+
+.meest2-input-group {
+    flex: 1;
+    /*max-width: 50%;*/
+}
+
+.meest2-input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.meest2-input-group input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.meest2-input-group input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.meest2-input-group input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.meest2-map-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.3s;
+    white-space: nowrap;
+    align-self: flex-end;
+}
+
+.meest2-map-btn:hover {
+    background: #1976D2;
+    color: white;
+    text-decoration: none;
+}
+
+.meest2-map-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.meest2-map-btn.hidden {
+    display: none;
+}
+
+/* Модальное окно */
+.meest2-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s;
+}
+
+.meest2-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.meest2-modal-content {
+    background-color: #fff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 1000px;
+    height: 80vh;
+    max-height: 600px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s;
+}
+
+.meest2-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meest2-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.meest2-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s;
+}
+
+.meest2-modal-close:hover {
+    color: #000;
+}
+
+.meest2-modal-body {
+    padding: 0;
+    height: calc(100% - 70px);
+}
+
+.meest2-modal-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0 0 8px 8px;
+}
+
+#meest2-map {
+    width: 100%;
+    height: 100%;
+    border-radius: 0 0 8px 8px;
+}
+
+.meest2-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 16px;
+    color: #666;
+}
+
+
+
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .meest2-field-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .meest2-input-group {
+        max-width: 100%;
+    }
+
+    .meest2-map-btn {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+}

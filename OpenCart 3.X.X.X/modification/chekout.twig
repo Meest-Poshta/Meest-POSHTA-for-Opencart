@@ -1,0 +1,568 @@
+<!-- START Meest for Simple Checkout -->
+            <style>
+                /* Принудительное скрытие полей для методов Meest */
+                .meest-hide-field {
+                    display: none !important;
+                }
+                /* Принудительное показывание полей Meest */
+                .meest-city-field,
+                .meest-address-field {
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    height: auto !important;
+                }
+            </style>
+            <script type="text/javascript">
+            (function ($) {
+                var methodsMeest = {
+                    init: function (options) {
+                        return this.each(function () {
+                            var $this = $(this);
+                            var data = $this.data('autocompleteMeestAddress');
+
+                            if (!data) {
+                                $this.timer = null;
+                                $this.items = new Array();
+                                $.extend($this, options);
+                                $this.attr('autocomplete', 'new-password');
+
+                                // On focus, request autocomplete data
+                                $this.on('focus.autocompleteMeestAddress', function () {
+                                    $this.request('');
+                                });
+
+                                // On blur, hide the autocomplete list after a delay
+                                $this.on('blur.autocompleteMeestAddress', function () {
+                                    setTimeout(function (object) {
+                                        object.hide();
+                                    }, 200, $this);
+                                });
+
+                                // On keydown, handle escape key and trigger request
+                                $this.on('keydown.autocompleteMeestAddress', function (event) {
+                                    switch (event.keyCode) {
+                                        case 27: // escape
+                                            $this.hide();
+                                            break;
+                                        default:
+                                            $this.request();
+                                            break;
+                                    }
+                                });
+
+                                // Click event for autocomplete items
+                                $this.click = function (event) {
+                                    event.preventDefault();
+                                    var id = $(event.target).parent().attr('data-id');
+                                    var value = $(event.target).parent().attr('data-value');
+                                    if (value && $this.items[id]) {
+                                        $this.select($this.items[id]);
+                                    }
+                                };
+
+                                // Show autocomplete list
+                                $this.show = function () {
+                                    var pos = $this.position();
+                                    $this.siblings('ul.' + $this.class).css({
+                                        'top': pos.top + $this.outerHeight(),
+                                        'left': pos.left
+                                    });
+                                    $this.siblings('ul.' + $this.class).show();
+                                };
+
+                                // Hide autocomplete list
+                                $this.hide = function () {
+                                    $this.siblings('ul.' + $this.class).hide();
+                                };
+
+                                // Request autocomplete data
+                                $this.request = function (search) {
+                                    clearTimeout($this.timer);
+                                    $this.timer = setTimeout(function (object) {
+                                        search = (typeof(search) === 'undefined') ? object.val() : search;
+                                        object.source(search, $.proxy(object.response, object));
+                                    }, 200, $this);
+                                };
+
+                                // Handle autocomplete response
+                                $this.response = function (json) {
+                                    var html = '';
+                                    var i;
+                                    if (json.length) {
+                                        for (i = 0; i < json.length; i++) {
+                                            this.items[i] = json[i];
+                                            html += '<li data-id="' + i + '" city-id="' + json[i]['id'] + '" data-value="' + json[i]['value'] + '"><a href="#">' + json[i]['label'] + '</a></li>';
+                                        }
+                                    }
+                                    if (html && $this.is(':focus')) {
+                                        $this.show();
+                                    } else {
+                                        $this.hide();
+                                    }
+                                    $this.siblings('ul.' + $this.class).html(html);
+                                };
+
+                                $this.after('<ul class="' + $this.class + '"></ul>');
+                                $this.siblings('ul.' + $this.class).delegate('a', 'click', $.proxy($this.click, $this));
+                                $this.data('autocompleteMeestAddress', true);
+                            }
+                        });
+                    },
+                    destroy: function () {
+                        return this.each(function () {
+                            var $this = $(this);
+                            $this.removeData('autocompleteMeestAddress');
+                            $this.off('.autocompleteMeestAddress');
+                        });
+                    }
+                };
+
+                $.fn.autocompleteMeestAddress = function (method) {
+                    if (methodsMeest[method]) {
+                        return methodsMeest[method].apply(this, Array.prototype.slice.call(arguments, 1));
+                    } else if (typeof(method) === 'object' || !method) {
+                        return methodsMeest.init.apply(this, arguments);
+                    } else {
+                        $.error('Method "' + method + '" does not exist for jQuery.autocompleteMeestAddress');
+                    }
+                };
+            })(window.jQuery);
+
+            function saveAddress(cityUuid, address1Uuid, meestShippingMethod) {
+                return $.post('index.php?route=extension/module/meest2/saveUuid', {
+                    cityUuid: cityUuid,
+                    addressUuid: address1Uuid,
+                    shippingMethod: meestShippingMethod
+                });
+            }
+
+            let cityUuid = null;
+            let address1Uuid = null;
+            let meestShippingMethod = null;
+
+            function MeestUniqueShippingData() {
+                var self = this;
+                var src, method, lang, city;
+
+                self.methods_city = [
+                    'meest2.warehouse',
+                    'meest2.courier',
+                    'meest2.postomat'
+                ];
+
+                self.setProp = function () {
+                    self.method = $('input[name="shipping_method"]:checked').val() || $('select[name="shipping_method"]').val();
+                    self.lang = $('html').attr('lang') || 'uk';
+                };
+
+                self.handlerChanges = function (name, value) {
+                    if (name.match(/zone/i)) {
+                        $('input[name="shipping_address[city]"]:visible').val('');
+                        $('input[name="shipping_address[address_1]"]:visible').val('');
+                    } else if (name.match(/city/i)) {
+                        $('input[name="shipping_address[address_1]"]:visible').val('');
+                    } else if (name.match(/shipping_method/i)) {
+                        $('input[name="shipping_address[city]"]:visible, input[name="shipping_address[address_1]"]:visible')
+                            .val('')
+                            .autocompleteMeestAddress('destroy');
+                        self.method = value;
+                    }
+                };
+
+                self.getAddress = function (element, search) {
+                    var filter, action;
+                    var currentMethod = self.method;
+
+                    var actionMap = {
+                        'meest2.warehouse': 'getBranches',
+                        'meest2.courier': 'getStreets',
+                        'meest2.postomat': 'getPoshtomat'
+                    };
+
+                    if (element[0].name.match(/city/i)) {
+                        action = 'getCities';
+                        filter = $('[name="shipping_address[zone_id]"]:visible').val() || '';
+                    } else if (element[0].name.match(/address_1/i)) {
+                        action = actionMap[currentMethod] || 'getBranches';
+                        filter = self.cityFilter;
+                        if (!filter) {
+                            return $.Deferred().resolve([]).promise();
+                        }
+                    }
+
+                    if (!search) {
+                        search = element[0].value;
+                    }
+
+                    return $.ajax({
+                        url: 'index.php?route=extension/module/meest2/getMeestData',
+                        type: 'POST',
+                        data: {
+                            action: action,
+                            filter: encodeURIComponent(filter),
+                            search: encodeURIComponent(search)
+                        },
+                        dataType: 'json',
+                        global: false,
+                        success: function (json) {
+                            self.src = json;
+                        }
+                    });
+                };
+            }
+
+            $(function () {
+                var meestUniqueShippingData = new MeestUniqueShippingData();
+                meestUniqueShippingData.setProp();
+
+                $('input[name="shipping_address[city]"]').val('');//.removeAttr('city-id')
+
+                $(document).ajaxStop(function () {
+                    meestUniqueShippingData.setProp();
+                });
+
+                $(document).on('change', '[name="shipping_address[zone_id]"]:visible, [name="shipping_address[city]"]:visible, [name="shipping_method"]', function (e) {
+                    meestUniqueShippingData.handlerChanges(e.target.name, e.target.value);
+                });
+
+				// Test Shipping
+				$('input[name="shipping_address[city]"]:visible').val('');
+				$('input[name="shipping_address[address_1]"]:visible').val('');
+				saveAddress('', '', $('input[name="shipping_method"]:checked').val() || $('select[name="shipping_method"]').val());
+				
+				// Проверяем при загрузке страницы, нужно ли скрыть поля
+				// Поддержка разных вариантов: radio, select, hidden inputs
+				var initialMethod = $('input[name="shipping_method"]:checked').val() 
+					|| $('select[name="shipping_method"]').val()
+					|| $('input[name="shipping_method_checked"]').val()
+					|| $('input[name="shipping_method_current"]').val();
+				
+				var meestMethodsInit = ['meest2.warehouse', 'meest2.courier', 'meest2.postomat'];
+				if (meestMethodsInit.indexOf(initialMethod) !== -1) {
+					// Скрываем поля: address_1 (поштомат) и address_2 (отделение НП)
+					$('#simplecheckout_shipping_address .row-shipping_address_address_1').addClass('meest-hide-field');
+					$('#simplecheckout_shipping_address .row-shipping_address_address_2').addClass('meest-hide-field');
+					$('#shipping_address_address_1, #shipping_address_address_2').prop('disabled', true);
+					
+					// Создаем видимые поля для Meest, если их еще нет
+					if ($('#simplecheckout_shipping_address .meest-city-field').length === 0) {
+						var cityField = '<div class="form-group meest-city-field">' +
+							'<label class="control-label col-sm-4">Місто</label>' +
+							'<div class="col-sm-8">' +
+							'<input type="text" name="shipping_address[city]" class="form-control" placeholder="Введіть місто" />' +
+							'</div></div>';
+						$('#simplecheckout_shipping_address fieldset').prepend(cityField);
+					}
+					
+					if ($('#simplecheckout_shipping_address .meest-address-field').length === 0) {
+						var addressField = '<div class="form-group meest-address-field">' +
+							'<label class="control-label col-sm-4">Адреса / Відділення</label>' +
+							'<div class="col-sm-8">' +
+							'<input type="text" name="shipping_address[address_1]" class="form-control" placeholder="Введіть адресу" />' +
+							'</div></div>';
+						$('#simplecheckout_shipping_address .meest-city-field').after(addressField);
+					}
+				} else {
+					// Показываем стандартные поля для других методов доставки
+					$('#simplecheckout_shipping_address .row-shipping_address_address_1').removeClass('meest-hide-field');
+					$('#simplecheckout_shipping_address .row-shipping_address_address_2').removeClass('meest-hide-field');
+					$('#shipping_address_address_1, #shipping_address_address_2').prop('disabled', false);
+					
+					// Удаляем поля Meest
+					$('#simplecheckout_shipping_address .meest-city-field').remove();
+					$('#simplecheckout_shipping_address .meest-address-field').remove();
+				}
+
+				// Обработчик для всех типов полей метода доставки
+				$(document).on('change', 'input[name="shipping_method"], select[name="shipping_method"], input[name="shipping_method_checked"], input[name="shipping_method_current"]', function (e) {
+					var currentMethod = $('input[name="shipping_method"]:checked').val() 
+						|| $('select[name="shipping_method"]').val()
+						|| $('input[name="shipping_method_checked"]').val()
+						|| $('input[name="shipping_method_current"]').val();
+					
+					$('input[name="shipping_address[city]"]:visible').val('');
+					$('input[name="shipping_address[address_1]"]:visible').val('');
+					saveAddress('', '', currentMethod);
+					
+					// Скрываем/показываем поля для методов Meest
+					var meestMethods = ['meest2.warehouse', 'meest2.courier', 'meest2.postomat'];
+					if (meestMethods.indexOf(currentMethod) !== -1) {
+						// Скрываем стандартные поля
+						$('#simplecheckout_shipping_address .row-shipping_address_address_1').addClass('meest-hide-field');
+						$('#simplecheckout_shipping_address .row-shipping_address_address_2').addClass('meest-hide-field');
+						$('#shipping_address_address_1, #shipping_address_address_2').prop('disabled', true);
+						
+						// Создаем видимые поля для Meest, если их еще нет
+						if ($('#simplecheckout_shipping_address .meest-city-field').length === 0) {
+							var cityField = '<div class="form-group meest-city-field">' +
+								'<label class="control-label col-sm-4">Місто</label>' +
+								'<div class="col-sm-8">' +
+								'<input type="text" name="shipping_address[city]" class="form-control" placeholder="Введіть місто" />' +
+								'</div></div>';
+							$('#simplecheckout_shipping_address fieldset').prepend(cityField);
+						}
+						
+						if ($('#simplecheckout_shipping_address .meest-address-field').length === 0) {
+							var addressField = '<div class="form-group meest-address-field">' +
+								'<label class="control-label col-sm-4">Адреса / Відділення</label>' +
+								'<div class="col-sm-8">' +
+								'<input type="text" name="shipping_address[address_1]" class="form-control" placeholder="Введіть адресу" />' +
+								'</div></div>';
+							$('#simplecheckout_shipping_address .meest-city-field').after(addressField);
+						}
+					} else {
+						// Показываем стандартные поля для других методов доставки
+						$('#simplecheckout_shipping_address .row-shipping_address_address_1').removeClass('meest-hide-field');
+						$('#simplecheckout_shipping_address .row-shipping_address_address_2').removeClass('meest-hide-field');
+						$('#shipping_address_address_1, #shipping_address_address_2').prop('disabled', false);
+						
+						// Удаляем поля Meest
+						$('#simplecheckout_shipping_address .meest-city-field').remove();
+						$('#simplecheckout_shipping_address .meest-address-field').remove();
+					}
+				});
+				
+				// MutationObserver для отслеживания изменений в hidden inputs
+				var hiddenInputObserver = new MutationObserver(function(mutations) {
+					mutations.forEach(function(mutation) {
+						if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+							var currentMethod = $('input[name="shipping_method"]:checked').val() 
+								|| $('select[name="shipping_method"]').val()
+								|| $('input[name="shipping_method_checked"]').val()
+								|| $('input[name="shipping_method_current"]').val();
+							
+							var meestMethods = ['meest2.warehouse', 'meest2.courier', 'meest2.postomat'];
+							if (meestMethods.indexOf(currentMethod) !== -1) {
+								$('#simplecheckout_shipping_address .row-shipping_address_address_1').addClass('meest-hide-field');
+								$('#simplecheckout_shipping_address .row-shipping_address_address_2').addClass('meest-hide-field');
+								$('#shipping_address_address_1, #shipping_address_address_2').prop('disabled', true);
+								
+								// Создаем поля Meest
+								if ($('#simplecheckout_shipping_address .meest-city-field').length === 0) {
+									var cityField = '<div class="form-group meest-city-field">' +
+										'<label class="control-label col-sm-4">Місто</label>' +
+										'<div class="col-sm-8">' +
+										'<input type="text" name="shipping_address[city]" class="form-control" placeholder="Введіть місто" />' +
+										'</div></div>';
+									$('#simplecheckout_shipping_address fieldset').prepend(cityField);
+								}
+								if ($('#simplecheckout_shipping_address .meest-address-field').length === 0) {
+									var addressField = '<div class="form-group meest-address-field">' +
+										'<label class="control-label col-sm-4">Адреса / Відділення</label>' +
+										'<div class="col-sm-8">' +
+										'<input type="text" name="shipping_address[address_1]" class="form-control" placeholder="Введіть адресу" />' +
+										'</div></div>';
+									$('#simplecheckout_shipping_address .meest-city-field').after(addressField);
+								}
+							} else {
+								$('#simplecheckout_shipping_address .row-shipping_address_address_1').removeClass('meest-hide-field');
+								$('#simplecheckout_shipping_address .row-shipping_address_address_2').removeClass('meest-hide-field');
+								$('#shipping_address_address_1, #shipping_address_address_2').prop('disabled', false);
+								$('#simplecheckout_shipping_address .meest-city-field').remove();
+								$('#simplecheckout_shipping_address .meest-address-field').remove();
+							}
+						}
+					});
+				});
+				
+				// Наблюдаем за изменениями в hidden inputs
+				var hiddenInputs = document.querySelectorAll('input[name="shipping_method_checked"], input[name="shipping_method_current"]');
+				hiddenInputs.forEach(function(input) {
+					hiddenInputObserver.observe(input, { attributes: true, attributeFilter: ['value'] });
+				});
+				
+				// MutationObserver для отслеживания изменений в DOM блока shipping_address
+				var shippingBlockObserver = new MutationObserver(function(mutations) {
+					var currentMethod = $('input[name="shipping_method"]:checked').val() 
+						|| $('select[name="shipping_method"]').val()
+						|| $('input[name="shipping_method_checked"]').val()
+						|| $('input[name="shipping_method_current"]').val();
+					var meestMethods = ['meest2.warehouse', 'meest2.courier', 'meest2.postomat'];
+					
+					if (meestMethods.indexOf(currentMethod) !== -1) {
+						// Если поля Meest были удалены - восстанавливаем их
+						if ($('#simplecheckout_shipping_address .meest-city-field').length === 0) {
+							var cityField = '<div class="form-group meest-city-field">' +
+								'<label class="control-label col-sm-4">Місто</label>' +
+								'<div class="col-sm-8">' +
+								'<input type="text" name="shipping_address[city]" class="form-control" placeholder="Введіть місто" />' +
+								'</div></div>';
+							$('#simplecheckout_shipping_address fieldset').prepend(cityField);
+						}
+						if ($('#simplecheckout_shipping_address .meest-address-field').length === 0) {
+							var addressField = '<div class="form-group meest-address-field">' +
+								'<label class="control-label col-sm-4">Адреса / Відділення</label>' +
+								'<div class="col-sm-8">' +
+								'<input type="text" name="shipping_address[address_1]" class="form-control" placeholder="Введіть адресу" />' +
+								'</div></div>';
+							$('#simplecheckout_shipping_address .meest-city-field').after(addressField);
+						}
+					}
+				});
+				
+				// Наблюдаем за изменениями в блоке shipping_address
+				var shippingBlock = document.querySelector('#simplecheckout_shipping_address');
+				if (shippingBlock) {
+					shippingBlockObserver.observe(shippingBlock, {
+						childList: true,
+						subtree: true,
+						attributes: true,
+						attributeFilter: ['style', 'class']
+					});
+				}
+				
+				// Агрессивный обработчик для защиты от конфликтов с другим кодом
+				setInterval(function() {
+					var currentMethod = $('input[name="shipping_method"]:checked').val() 
+						|| $('select[name="shipping_method"]').val()
+						|| $('input[name="shipping_method_checked"]').val()
+						|| $('input[name="shipping_method_current"]').val();
+					var meestMethods = ['meest2.warehouse', 'meest2.courier', 'meest2.postomat'];
+					
+					if (meestMethods.indexOf(currentMethod) !== -1) {
+						// Скрываем стандартные поля
+						var field1 = $('#simplecheckout_shipping_address .row-shipping_address_address_1');
+						var field2 = $('#simplecheckout_shipping_address .row-shipping_address_address_2');
+						if (!field1.hasClass('meest-hide-field')) field1.addClass('meest-hide-field');
+						if (!field2.hasClass('meest-hide-field')) field2.addClass('meest-hide-field');
+						$('#shipping_address_address_1, #shipping_address_address_2').prop('disabled', true);
+						
+						// Принудительно создаем и показываем поля Meest
+						if ($('#simplecheckout_shipping_address .meest-city-field').length === 0) {
+							var cityField = '<div class="form-group meest-city-field">' +
+								'<label class="control-label col-sm-4">Місто</label>' +
+								'<div class="col-sm-8">' +
+								'<input type="text" name="shipping_address[city]" class="form-control" placeholder="Введіть місто" />' +
+								'</div></div>';
+							$('#simplecheckout_shipping_address fieldset').prepend(cityField);
+						}
+						if ($('#simplecheckout_shipping_address .meest-address-field').length === 0) {
+							var addressField = '<div class="form-group meest-address-field">' +
+								'<label class="control-label col-sm-4">Адреса / Відділення</label>' +
+								'<div class="col-sm-8">' +
+								'<input type="text" name="shipping_address[address_1]" class="form-control" placeholder="Введіть адресу" />' +
+								'</div></div>';
+							$('#simplecheckout_shipping_address .meest-city-field').after(addressField);
+						}
+						
+						// Принудительно показываем поля Meest (на случай если их скрыли)
+						$('#simplecheckout_shipping_address .meest-city-field').show().css({
+							'display': 'block',
+							'visibility': 'visible',
+							'opacity': '1'
+						});
+						$('#simplecheckout_shipping_address .meest-address-field').show().css({
+							'display': 'block',
+							'visibility': 'visible',
+							'opacity': '1'
+						});
+					}
+				}, 300);
+
+                // For city autocomplete - no changes needed here
+                $('body').on('focus', 'input[name="shipping_address[city]"]:visible', function () {
+					var currentMethod = $('input[name="shipping_method"]:checked').val() || $('select[name="shipping_method"]').val();
+					var methods_meestA = [
+					  'meest2.warehouse',
+					  'meest2.courier',
+					  'meest2.postomat'
+					];
+
+					if (!methods_meestA.includes(currentMethod)) {
+                        meestUniqueShippingData.src = [];
+						return $.Deferred().resolve([]).promise();
+					}
+					meestUniqueShippingData.src = [];
+                    $(this).autocompleteMeestAddress({
+                        source: function (request, response) {
+                            if ($.inArray(meestUniqueShippingData.method, meestUniqueShippingData.methods_city) === -1) {
+                                response([]);
+                                return;
+                            }
+
+                            meestUniqueShippingData.getAddress(this, request).done(function () {
+                                response($.map(meestUniqueShippingData.src, function (item) {
+                                    let regionPart = item['region'] ? ', обл. ' + item['region'] : '';
+                                    let typeC = item['type'] ? item['type'] + ' ' : '';
+                                    let label = typeC + item['name'] + regionPart;
+                                    return {
+                                        id: item['id'] || '',
+                                        label: label,
+                                        value: item['name'],
+                                        region_name: item['region'],
+                                        type: item['type']
+                                    };
+                                }));
+                            });
+                        },
+                        select: function (e) {
+                            cityUuid = e.id;
+                            saveAddress(cityUuid, address1Uuid, currentMethod);
+                            $('input[name="shipping_address[address_1]"]:visible').val('');
+                            this.val(e.label);
+                            meestUniqueShippingData.city = e.id;
+                            meestUniqueShippingData.cityFilter = e.id;
+                            this.trigger('change');
+                        },
+                        class: 'dropdown-address'
+                    });
+                });
+
+                // For address_1 autocomplete, add non-duplication logic and call meestUniqueSaveAddress
+                $('body').on('focus', 'input[name="shipping_address[address_1]"]:visible', function () {
+                	var cityValue = $('input[name*="city"]:visible').val();
+
+				  	if (cityValue && cityValue.trim() !== '') {
+
+						var currentMethod = $('input[name="shipping_method"]:checked').val() || $('select[name="shipping_method"]').val();
+
+					    var methods_meestA = [
+							'meest2.warehouse',
+							'meest2.courier',
+							'meest2.postomat'
+					     ];
+
+					  	if (!methods_meestA.includes(currentMethod)) {
+                            meestUniqueShippingData.src = [];
+							return $.Deferred().resolve([]).promise();
+					  	}
+					  	meestUniqueShippingData.src = [];
+						$(this).autocompleteMeestAddress({
+							source: function (request, response) {
+								if ($.inArray(meestUniqueShippingData.method, meestUniqueShippingData.methods_city) === -1) {
+									response([]);
+									return;
+								}
+
+								meestUniqueShippingData.getAddress(this, request).done(function () {
+									response($.map(meestUniqueShippingData.src, function (item) {
+                                        let fullLabel = item['description'] ? item['description'].trim() : '';
+                                        if (item['address_more_information']) {
+                                            fullLabel += ' (' + item['address_more_information'] + ')';
+                                        }
+
+                                        return {
+                                            id: item['id'] || '',
+                                            label: fullLabel,
+                                            value: fullLabel
+                                        };
+									}));
+								});
+							},
+							select: function (e) {
+                                address1Uuid = e.id;
+                                var $this = $(this);
+								saveAddress(cityUuid, address1Uuid, currentMethod).done(function(response) {
+									$this.val(e.value);
+									$this.trigger('change');
+								});
+							},
+							class: 'dropdown-address'
+						});
+					}
+                });
+
+            });
+            </script>
+            <!-- END Meest for Simple Checkout -->

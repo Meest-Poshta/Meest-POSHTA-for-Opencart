@@ -64,6 +64,17 @@ class ModelExtensionShippingMeest2 extends Model {
         
         $data = $this->load->language('extension/shipping/meest2');
 
+        // Підключаємо CSS та JS для Meest2 (працює з будь-яким checkout)
+        if (isset($this->registry->get('document')->addStyle)) {
+            $this->registry->get('document')->addStyle('catalog/view/javascript/meest2/checkout.css');
+            $this->registry->get('document')->addStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+        }
+        
+        if (isset($this->registry->get('document')->addScript)) {
+            $this->registry->get('document')->addScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+            $this->registry->get('document')->addScript('catalog/view/javascript/meest2/checkout.js?v=' . time());
+        }
+
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "zone_to_geo_zone WHERE geo_zone_id = '" . (int) $this->config->get('free_geo_zone_id') . "' AND country_id = '" . (int) $address['country_id'] . "' AND (zone_id = '" . (int) $address['zone_id'] . "' OR zone_id = '0')");
 
         if (!$this->config->get('meest2_geo_zone_id')) {
@@ -238,12 +249,6 @@ class ModelExtensionShippingMeest2 extends Model {
                     'text'         => $priceHtml,
                     'error' => $errorData
                 ];
-
-                if ($key == $length - 1) {
-                    $data = $this->load->language('extension/module/meest2');
-                    $html = $this->load->view('extension/module/meest2', $data);
-                    $quote_data[$service]['title'] = $quote_data[$service]['title'] . $html;
-                }
 
             }
 
@@ -1251,6 +1256,25 @@ class ModelExtensionShippingMeest2 extends Model {
                 WHERE street_id = '" . $this->db->escape($row['street_id']) . "'
             ");
         }
+    }
+
+    public function saveOrderShippingData($order_id, $data) {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "meest2_order_shipping_data` SET
+            order_id = '" . (int)$order_id . "',
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "'
+            ON DUPLICATE KEY UPDATE
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "'
+        ");
     }
 
 }

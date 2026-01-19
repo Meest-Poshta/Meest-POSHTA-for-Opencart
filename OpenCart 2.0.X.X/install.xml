@@ -2,7 +2,7 @@
 <modification>
     <name>Meest Express - Complete Integration for OpenCart 2.0</name>
     <code>meest_express_complete_2_0</code>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <author>Meest</author>
     <link>https://meest.com</link>
 
@@ -125,6 +125,73 @@
                     </div>
                 ]]>
             </add>
+        </operation>
+    </file>
+
+    <file path="catalog/controller/common/header.php">
+        <operation>
+            <search><![CDATA[public function index() {]]></search>
+            <add position="after"><![CDATA[
+		/* START Meest Assets Loader */
+        $current_route = isset($this->request->get['route']) ? $this->request->get['route'] : '';
+
+        $allowed_routes = array(
+            'checkout/checkout',
+            'checkout/simplecheckout',
+            'checkout/quick_checkout',
+            'checkout/ajax_quick_checkout',
+            'checkout/uni_checkout',
+            'extension/checkout/checkout',
+            'extension/d_quickcheckout/confirm',
+            'extension/d_ajax_checkout/checkout',
+            'extension/checkout/oct_fastorder',
+            'journal3/checkout',
+            'checkout/buy',
+            'extension/quickcheckout/checkout'
+        );
+
+        if (in_array($current_route, $allowed_routes)) {
+            $this->load->language('shipping/meest2');
+
+            $this->document->addStyle(
+                'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+                'stylesheet'
+            );
+
+            $this->document->addScript(
+                'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+                'header'
+            );
+
+            $this->document->addScript('catalog/view/javascript/meest2/checkout.js?v=' . time());
+
+            $this->document->addStyle('catalog/view/javascript/meest2/checkout.css');
+        }
+        /* END Meest Assets Loader */
+			]]></add>
+        </operation>
+    </file>
+
+    <file path="catalog/model/checkout/order.php">
+        <operation>
+            <search><![CDATA[$order_id = $this->db->getLastId();]]></search>
+            <add position="after"><![CDATA[
+            // Meest2 - save shipping data to order
+            if (isset($this->session->data['meest_data'])) {
+                // Call the controller method to save data
+                // In OC 2.0, the second argument is passed as $args to the controller method
+                $this->load->controller('module/meest2/saveOrderEntry', $order_id);
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file path="catalog/model/checkout/order.php">
+        <operation>
+            <search><![CDATA[$order_id = $this->db->getLastId();]]></search>
+            <add position="after"><![CDATA[
+		$this->load->controller('module/meest2/afterAddOrder', $order_id);
+            ]]></add>
         </operation>
     </file>
 

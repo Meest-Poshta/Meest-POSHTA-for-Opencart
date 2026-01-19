@@ -1,5 +1,11 @@
-$(document).ready(function() {
-    var config = window.meest2OrderFormUrls;
+$(document).ready(function () {
+    var config = window.meest2OrderFormUrls || {};
+
+    if (!config.text_select) {
+        console.error('meest2OrderFormUrls not loaded');
+        return;
+    }
+
     $('#input-sender-city, #input-sender-address, #input-sender-city-address, #input-sender-branch').select2({
         placeholder: config.text_select,
         allowClear: true
@@ -11,11 +17,11 @@ $(document).ready(function() {
             type: 'get',
             data: { region_id: region_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var citySelect = $('#input-sender-city');
                 citySelect.empty();
                 citySelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, city) {
+                $.each(data, function (index, city) {
                     citySelect.append('<option value="' + city.city_id + '">' + city.name_ua + '</option>');
                 });
                 citySelect.val(config.shipping_meest2_sender_city).trigger('change');
@@ -29,11 +35,11 @@ $(document).ready(function() {
             type: 'get',
             data: { region_id: region_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var citySelect = $('#input-sender-city-address');
                 citySelect.empty();
                 citySelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, city) {
+                $.each(data, function (index, city) {
                     citySelect.append('<option value="' + city.city_id + '">' + city.name_ua + '</option>');
                 });
                 citySelect.val(config.shipping_meest2_sender_city).trigger('change');
@@ -47,11 +53,11 @@ $(document).ready(function() {
             type: 'get',
             data: { city_id: city_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var addressSelect = $('#input-sender-address');
                 addressSelect.empty();
                 addressSelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, address) {
+                $.each(data, function (index, address) {
                     addressSelect.append('<option value="' + address.street_id + '">' + address.type_ua + ' ' + address.name_ua + '</option>');
                 });
                 addressSelect.val(config.shipping_meest2_sender_address).trigger('change');
@@ -65,11 +71,11 @@ $(document).ready(function() {
             type: 'get',
             data: { city_id: city_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var branchSelect = $('#input-sender-branch');
                 branchSelect.empty();
                 branchSelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, branch) {
+                $.each(data, function (index, branch) {
                     branchSelect.append('<option value="' + branch.branch_id + '">' + branch.short_name + ' (' + branch.address_more_information + ') ' + '</option>');
                 });
                 branchSelect.select2({
@@ -93,34 +99,86 @@ $(document).ready(function() {
         populateAddresses($('#input-sender-city-address').val());
     }
 
-    $('#input-sender-region').change(function() {
+    $('#input-sender-region').change(function () {
         var region_id = $(this).val();
         populateCities(region_id);
     });
 
-    $('#input-sender-region-address').change(function() {
+    $('#input-sender-region-address').change(function () {
         var region_id = $(this).val();
         populateCitiesAddress(region_id);
     });
 
-    $('#input-sender-city').change(function() {
+    $('#input-sender-city').change(function () {
         var city_id = $(this).val();
         populateBranches(city_id);
     });
 
-    $('#input-sender-city-address').change(function() {
+    $('#input-sender-city-address').change(function () {
         var city_id = $(this).val();
         populateAddresses(city_id);
     });
 
     $('#input-recipient_city').select2({
         placeholder: config.text_select,
-        allowClear: true
+        allowClear: true,
+        ajax: {
+            url: config.ajax_search_cities_url,
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    search: params.term || ''
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: $.map(data, function (city) {
+                        var displayText = city.name_ua;
+                        if (city.region_name_ua) {
+                            displayText += ' (' + city.region_name_ua + ')';
+                        }
+                        return {
+                            id: city.city_id,
+                            text: displayText
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0
     });
 
     $('#input-recipient_city_address').select2({
         placeholder: config.text_select,
-        allowClear: true
+        allowClear: true,
+        ajax: {
+            url: config.ajax_search_cities_url,
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    search: params.term || ''
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: $.map(data, function (city) {
+                        var displayText = city.name_ua;
+                        if (city.region_name_ua) {
+                            displayText += ' (' + city.region_name_ua + ')';
+                        }
+                        return {
+                            id: city.city_id,
+                            text: displayText
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0
     });
 
     $('#input-recipient_branch').select2({
@@ -134,11 +192,11 @@ $(document).ready(function() {
             type: 'get',
             data: { region_id: region_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var citySelect = $('#input-recipient_city');
                 citySelect.empty();
                 citySelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, city) {
+                $.each(data, function (index, city) {
                     citySelect.append('<option value="' + city.city_id + '">' + city.name_ua + '</option>');
                 });
                 citySelect.val(config.shipping_meest2_recipient_city).trigger('change');
@@ -152,11 +210,11 @@ $(document).ready(function() {
             type: 'get',
             data: { region_id: region_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var citySelect = $('#input-recipient_city_address');
                 citySelect.empty();
                 citySelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, city) {
+                $.each(data, function (index, city) {
                     citySelect.append('<option value="' + city.city_id + '">' + city.name_ua + '</option>');
                 });
                 citySelect.val(config.shipping_meest2_recipient_city).trigger('change');
@@ -170,13 +228,27 @@ $(document).ready(function() {
             type: 'get',
             data: { city_id: city_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var branchSelect = $('#input-recipient_branch');
+                var preselectBranch = $('#input-recipient_city').data('preselect-branch');
+
                 branchSelect.empty();
                 branchSelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, branch) {
+                $.each(data, function (index, branch) {
                     branchSelect.append('<option value="' + branch.branch_id + '">' + branch.short_name + ' (' + branch.address_more_information + ') ' + '</option>');
                 });
+
+                // Реініціалізуємо select2
+                branchSelect.select2({
+                    placeholder: config.text_select,
+                    allowClear: true
+                });
+
+                // Якщо є збережений branch для автопідстановки
+                if (preselectBranch) {
+                    branchSelect.val(preselectBranch).trigger('change');
+                    $('#input-recipient_city').removeData('preselect-branch');
+                }
             }
         });
     }
@@ -187,48 +259,68 @@ $(document).ready(function() {
             type: 'get',
             data: { city_id: city_id },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var addressSelect = $('#input-recipient-address');
+                var currentValue = addressSelect.val(); // Зберігаємо поточне значення
+                var currentText = addressSelect.find('option:selected').text();
+
                 addressSelect.empty();
                 addressSelect.append('<option value="">' + config.text_select + '</option>');
-                $.each(data, function(index, address) {
-                    addressSelect.append('<option value="' + address.street_id + '">' + address.type_ua + ' ' + address.name_ua + '</option>');
+
+                // Якщо є збережена адреса (текст), залишаємо її
+                if (currentValue && currentValue !== '') {
+                    addressSelect.append('<option value="' + currentValue + '" selected>' + currentText + '</option>');
+                }
+
+                // Додаємо адреси з автокомпліту
+                $.each(data, function (index, address) {
+                    var addressValue = address.street_id;
+                    var addressText = address.type_ua + ' ' + address.name_ua;
+                    // Не додаємо дублікат якщо вже є збережена адреса
+                    if (!currentValue || addressValue !== currentValue) {
+                        addressSelect.append('<option value="' + addressValue + '">' + addressText + '</option>');
+                    }
                 });
+
+                // Реініціалізуємо select2 з можливістю вводу власного тексту
                 addressSelect.select2({
                     placeholder: config.text_select,
-                    allowClear: true
-                }).val(config.shipping_meest2_recipient_address).trigger('change');
+                    allowClear: true,
+                    tags: true // Дозволяємо вводити власний текст
+                });
             }
         });
     }
 
-    $('#input-recipient_region').change(function() {
-        var region_id = $(this).val();
-        populateRecipientCities(region_id);
-    });
+    // Закоментовано, оскільки поля регіону приховані
+    // $('#input-recipient_region').change(function() {
+    //     var region_id = $(this).val();
+    //     populateRecipientCities(region_id);
+    // });
 
-    $('#input-recipient_region_address').change(function() {
-        var region_id = $(this).val();
-        populateRecipientCitiesAddress(region_id);
-    });
+    // $('#input-recipient_region_address').change(function() {
+    //     var region_id = $(this).val();
+    //     populateRecipientCitiesAddress(region_id);
+    // });
 
-    $('#input-recipient_city').change(function() {
+    $('#input-recipient_city').change(function () {
         var city_id = $(this).val();
         populateRecipientBranches(city_id);
     });
 
-    $('#input-recipient_city_address').change(function() {
+    $('#input-recipient_city_address').change(function () {
         var city_id = $(this).val();
         populateRecipientAddresses(city_id);
     });
 
-    if ($('#input-recipient_region').val()) {
-        populateRecipientCities($('#input-recipient_region').val());
-    }
+    // Закоментовано, оскільки поля регіону приховані
+    // if ($('#input-recipient_region').val()) {
+    //     populateRecipientCities($('#input-recipient_region').val());
+    // }
 
-    if ($('#input-recipient_region_address').val()) {
-        populateRecipientCitiesAddress($('#input-recipient_region_address').val());
-    }
+    // if ($('#input-recipient_region_address').val()) {
+    //     populateRecipientCitiesAddress($('#input-recipient_region_address').val());
+    // }
 
     $('#input-departure_date').datepicker({
         format: 'dd.mm.yyyy',
@@ -236,13 +328,13 @@ $(document).ready(function() {
         todayHighlight: true
     });
 
-    $('.input-group-btn button').click(function() {
+    $('.input-group-btn button').click(function () {
         $('#input-departure_date').datepicker('show');
     });
-// });
+    // });
 
-// $(document).ready(function() {
-    $('input[name="recipient_address_type"]').change(function() {
+    // $(document).ready(function() {
+    $('input[name="recipient_address_type"]').change(function () {
         var selectedType = $(this).val();
         $('#recipient_delivery_type').val(selectedType);
         $('#recipient_branch_delivery').hide();
@@ -254,7 +346,7 @@ $(document).ready(function() {
         }
     });
 
-    $('input[name="sender_address_type"]').change(function() {
+    $('input[name="sender_address_type"]').change(function () {
         var selectedType = $(this).val();
         $('#sender_delivery_type').val(selectedType);
         $('#sender_branch_delivery').hide();
@@ -266,23 +358,23 @@ $(document).ready(function() {
         }
     });
 
-    $('#toggle-cod').change(function() {
+    $('#toggle-cod').change(function () {
         if ($(this).is(':checked')) {
             $('.cod-amount-container').slideDown();
         } else {
             $('.cod-amount-container').slideUp();
         }
     });
-// });
+    // });
 
-let placeIndex = 1;
-var textSelect = config.text_select;
-document.getElementById('add-place').addEventListener('click', function() {
-    const container = document.getElementById('places-container');
-    const newPlace = document.createElement('div');
-    newPlace.classList.add('place-item');
-    newPlace.dataset.index = placeIndex;
-    newPlace.innerHTML = `
+    let placeIndex = 1;
+    var textSelect = config.text_select;
+    document.getElementById('add-place').addEventListener('click', function () {
+        const container = document.getElementById('places-container');
+        const newPlace = document.createElement('div');
+        newPlace.classList.add('place-item');
+        newPlace.dataset.index = placeIndex;
+        newPlace.innerHTML = `
         <legend class="seat-legend">${config.text_seat}</legend>
         <div class="form-group">
             <label class="col-sm-3 control-label">${config.entry_weight}</label>
@@ -344,33 +436,33 @@ document.getElementById('add-place').addEventListener('click', function() {
             </div>
         </div>
     `;
-    container.appendChild(newPlace);
-    if (container.children.length > 1) {
-        const removeButtons = document.querySelectorAll('.remove-place');
-        removeButtons.forEach(button => {
-            button.style.display = 'inline-block';
-        });
-    }
-    placeIndex++;
-});
-
-document.getElementById('places-container').addEventListener('click', function(event) {
-    if (event.target.classList.contains('remove-place')) {
-        const placeItem = event.target.closest('.place-item');
-        placeItem.remove();
-        if (this.children.length === 1) {
+        container.appendChild(newPlace);
+        if (container.children.length > 1) {
             const removeButtons = document.querySelectorAll('.remove-place');
             removeButtons.forEach(button => {
-                button.style.display = 'none';
+                button.style.display = 'inline-block';
             });
         }
-    }
-});
+        placeIndex++;
+    });
 
-// $(document).ready(function() {
-    $('#form-meest-cn').on('submit', function(event) {
+    document.getElementById('places-container').addEventListener('click', function (event) {
+        if (event.target.classList.contains('remove-place')) {
+            const placeItem = event.target.closest('.place-item');
+            placeItem.remove();
+            if (this.children.length === 1) {
+                const removeButtons = document.querySelectorAll('.remove-place');
+                removeButtons.forEach(button => {
+                    button.style.display = 'none';
+                });
+            }
+        }
+    });
+
+    // $(document).ready(function() {
+    $('#form-meest-cn').on('submit', function (event) {
         let isValid = true;
-        $('#form-meest-cn input, #form-meest-cn select').each(function() {
+        $('#form-meest-cn input, #form-meest-cn select').each(function () {
             const skipIds = [
                 'input-parcel-number',
                 'input-recipient-building-address',
@@ -411,23 +503,109 @@ document.getElementById('places-container').addEventListener('click', function(e
             alert(config.text_fill_required_fields);
         }
     });
-    $('#form-meest-cn input, #form-meest-cn select').on('input change', function() {
+    $('#form-meest-cn input, #form-meest-cn select').on('input change', function () {
         if ($(this).val() !== '' && $(this).val() !== null) {
             $(this).removeClass('is-invalid');
         }
     });
-    $('#input-recipient_contact_person_phone').on('input', function() {
+    $('#input-recipient_contact_person_phone').on('input', function () {
         this.value = this.value.replace(/[^0-9]/g, '');
         if (this.value.length > 12) {
             this.value = this.value.slice(0, 12);
         }
     });
-    $('#input-recipient_contact_person_phone_address').on('input', function() {
+    $('#input-recipient_contact_person_phone_address').on('input', function () {
         this.value = this.value.replace(/[^0-9]/g, '');
         if (this.value.length > 12) {
             this.value = this.value.slice(0, 12);
         }
     });
-// });
+
+    // Автоматичне підставлення даних з order_shipping_data
+    if (config.order_shipping_data && config.order_shipping_data.city_code) {
+
+
+        var shippingMethod = config.order_shipping_data.shipping_method;
+        var cityCode = config.order_shipping_data.city_code;
+        var cityName = config.order_shipping_data.city_name || cityCode;
+        var branchCode = config.order_shipping_data.branch_code;
+        var addressCode = config.order_shipping_data.address_code;
+
+
+
+        // Визначаємо тип доставки (warehouse/postomat або courier)
+        if (shippingMethod === 'meest2.warehouse' || shippingMethod === 'meest2.postomat' || shippingMethod === 'meest2.branch') {
+            // Відділення/поштомат - використовуємо branch delivery
+            $('input[name="recipient_address_type"][value="branch"]').prop('checked', true);
+            $('input[name="recipient_address_type"][value="branch"]').parent('label').addClass('active');
+            $('input[name="recipient_address_type"][value="doors"]').parent('label').removeClass('active');
+            $('input[name="recipient_address_type"][value="branch"]').trigger('change');
+
+            // Підставляємо місто: value = UUID, text = назва
+            if (cityCode) {
+                var $citySelect = $('#input-recipient_city');
+
+                // Додаємо опцію до вже налаштованого select2 (не руйнуємо AJAX)
+                var newOption = new Option(cityName, cityCode, true, true);
+                $citySelect.append(newOption).trigger('change.select2');
+
+                // Зберігаємо branch_code для підстановки після завантаження
+                if (branchCode) {
+                    $citySelect.data('preselect-branch', branchCode);
+                }
+
+                // Тригеримо change для завантаження відділень
+                $citySelect.trigger('change');
+            }
+        } else if (shippingMethod === 'meest2.courier' || shippingMethod === 'meest2.door') {
+            // Кур'єр - використовуємо address delivery
+            // Активуємо кнопку Doors
+            var $doorsButton = $('input[name="recipient_address_type"][value="doors"]').parent();
+            $doorsButton.addClass('active');
+            $('input[name="recipient_address_type"][value="branch"]').parent().removeClass('active');
+            $('input[name="recipient_address_type"][value="doors"]').prop('checked', true).trigger('change');
+
+            // Підставляємо місто: value = UUID, text = назва
+            if (cityCode) {
+                var $cityAddressSelect = $('#input-recipient_city_address');
+
+                // Додаємо опцію до вже налаштованого select2 (не руйнуємо AJAX)
+                var newOptionAddress = new Option(cityName, cityCode, true, true);
+                $cityAddressSelect.append(newOptionAddress).trigger('change.select2');
+
+                // Для кур'єрської доставки використовуємо address_name або address_code
+                var addressText = config.order_shipping_data.address_name || addressCode;
+
+
+                if (addressText) {
+                    // Чекаємо поки з'явиться поле адреси після переключення типу доставки
+                    setTimeout(function () {
+                        var $addressSelect = $('#input-recipient-address');
+
+
+                        // Вставляємо адресу: value = UUID (addressCode), text = назва (addressText)
+                        var addressOption = new Option(addressText, addressCode, true, true);
+                        $addressSelect.empty();
+                        $addressSelect.append('<option value="">Select</option>');
+                        $addressSelect.append(addressOption);
+
+                        // Ініціалізуємо select2 з можливістю редагування
+                        $addressSelect.select2({
+                            placeholder: config.text_select,
+                            allowClear: true,
+                            tags: true
+                        });
+
+                        $addressSelect.val(addressCode).trigger('change');
+
+                    }, 200); // Даємо час на переключення типу доставки
+                }
+
+                // Тригеримо change для завантаження адрес (для автокомпліту)
+                $cityAddressSelect.trigger('change');
+            }
+        }
+    }
+    // });
 
 });

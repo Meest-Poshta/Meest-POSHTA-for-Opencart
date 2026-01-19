@@ -35,6 +35,7 @@ class MeestExpress extends Model
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "meest_express_streets`");
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "meest_express_contracts`");
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "meest_express_contacts`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "meest_express_order_shipping_data`");
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "meest_express_parcels`");
     }
 
@@ -182,6 +183,26 @@ class MeestExpress extends Model
 
         // Add columns to order table
         $this->addOrderColumns();
+
+        // Create order shipping data table
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "meest_express_order_shipping_data` (
+                  `id` INT(11) NOT NULL AUTO_INCREMENT,
+                  `order_id` INT(11) NOT NULL,
+                  `shipping_method` VARCHAR(100) NOT NULL,
+                  `city_code` VARCHAR(40) DEFAULT NULL,
+                  `branch_code` VARCHAR(40) DEFAULT NULL,
+                  `address_code` VARCHAR(40) DEFAULT NULL,
+                  `region_code` VARCHAR(40) DEFAULT NULL,
+                  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `order_id_unique` (`order_id`)
+                ) ENGINE=MyISAM DEFAULT CHARSET=utf8");
+
+        $column = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "meest_express_order_shipping_data` LIKE 'building';");
+        if (!$column->num_rows) {
+            $this->db->query("ALTER TABLE `" . DB_PREFIX . "meest_express_order_shipping_data` ADD `building` VARCHAR(100) DEFAULT NULL AFTER `address_code`;");
+        }
 
         // Create parcels table
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "meest_express_parcels` (
@@ -922,11 +943,25 @@ class MeestExpress extends Model
         return $query->rows;
     }
 
+    public function searchCities($search)
+    {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_cities WHERE name_ua LIKE '%" . $this->db->escape($search) . "%' ORDER BY name_ua LIMIT 50");
+        return $query->rows;
+    }
+
+
     public function getStreetsByCity($city_id)
     {
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_streets WHERE city_id = '" . $this->db->escape($city_id) . "' ORDER BY name_ua");
         return $query->rows;
     }
+
+    public function searchStreetsByCity($city_id, $search)
+    {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_streets WHERE city_id = '" . $this->db->escape($city_id) . "' AND (street_name_ua LIKE '%" . $this->db->escape($search) . "%' OR name_ua LIKE '%" . $this->db->escape($search) . "%') ORDER BY name_ua LIMIT 50");
+        return $query->rows;
+    }
+
 
     public function getBranchesByCity($city_id)
     {
@@ -961,10 +996,10 @@ class MeestExpress extends Model
         $sql = "SELECT o.*, 
                 CONCAT(o.firstname, ' ', o.lastname) AS customer, 
                 os.name AS status,
-                o.meest_express_cn_uuid as meest2_cn_uuid,
-                o.meest_express_contractID as meest2_contractID,
-                o.meest_express_sender_address_pick_up as meest2_sender_address_pick_up,
-                o.meest_express_registerID as meest2_registerID
+                o.meest_express_cn_uuid as meest_express_cn_uuid,
+                o.meest_express_contractID as meest_express_contractID,
+                o.meest_express_sender_address_pick_up as meest_express_sender_address_pick_up,
+                o.meest_express_registerID as meest_express_registerID
                 FROM `" . DB_PREFIX . "order` o 
                 LEFT JOIN " . DB_PREFIX . "order_status os ON (o.order_status_id = os.order_status_id) 
                 WHERE o.meest_express_cn_uuid IS NOT NULL 
@@ -1065,5 +1100,31 @@ class MeestExpress extends Model
         if (!empty($data)) {
             $this->bulkUpdateStreets($data);
         }
+    }
+
+    public function getOrderShippingData($order_id) {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "meest_express_order_shipping_data` WHERE order_id = '" . (int)$order_id . "'");
+        return $query->row;
+    }
+
+    public function updateOrderShippingData($order_id, $data) {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "meest_express_order_shipping_data` SET
+            order_id = '" . (int)$order_id . "',
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "',
+            created_at = NOW(),
+            updated_at = NOW()
+            ON DUPLICATE KEY UPDATE
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "',
+            updated_at = NOW()");
     }
 }

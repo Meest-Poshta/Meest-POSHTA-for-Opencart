@@ -6,6 +6,8 @@ class ControllerExtensionModuleMeest2 extends Controller {
         '0c1b0075-cd44-49d1-bd3e-094da9645919',
         'acabaf4b-df2e-11eb-80d5-000c29800ae7',
         'ac82815e-10fe-4eb7-809a-c34be4553213',
+        'ac1ec893-efdc-4e92-9f50-400d1ffcafc6',
+        '302d4b0d-1802-11ef-80c5-000c2961d091',
     );
 
     public function __construct($registry)
@@ -385,5 +387,142 @@ class ControllerExtensionModuleMeest2 extends Controller {
 
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
+    }
+
+    public function saveMeestSessionData() {
+        $json = array('success' => false);
+
+        if ($this->request->server['REQUEST_METHOD'] == 'POST') {
+            if (!isset($this->session->data['meest_data'])) {
+                $this->session->data['meest_data'] = array();
+            }
+
+            if (isset($this->request->post['shipping_method'])) {
+                $this->session->data['meest_data']['shipping_method'] = $this->request->post['shipping_method'];
+            }
+
+            if (isset($this->request->post['city_code'])) {
+                $this->session->data['meest_data']['city_UUID'] = $this->request->post['city_code'];
+            }
+
+            if (isset($this->request->post['branch_code'])) {
+                $this->session->data['meest_data']['branch_code'] = $this->request->post['branch_code'];
+                if (!empty($this->request->post['branch_code'])) {
+                    $this->session->data['meest_data']['address_1_UUID'] = $this->request->post['branch_code'];
+                }
+            }
+
+            if (isset($this->request->post['address_code'])) {
+                $this->session->data['meest_data']['address_code'] = $this->request->post['address_code'];
+                if (!empty($this->request->post['address_code'])) {
+                    $this->session->data['meest_data']['address_1_UUID'] = $this->request->post['address_code'];
+                }
+            }
+
+            if (isset($this->request->post['region_code'])) {
+                $this->session->data['meest_data']['region_code'] = $this->request->post['region_code'];
+            }
+
+            if (isset($this->request->post['building'])) {
+                $this->session->data['meest_data']['building'] = $this->request->post['building'];
+            }
+
+            $json['success'] = true;
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
+    public function saveShippingData() {
+        $json = array('success' => false);
+
+        if ($this->request->server['REQUEST_METHOD'] == 'POST') {
+            $order_id = isset($this->session->data['order_id']) ? (int)$this->session->data['order_id'] : 0;
+
+            if ($order_id) {
+                $this->load->model('extension/shipping/meest2');
+
+                $data = array(
+                    'shipping_method' => isset($this->request->post['shipping_method']) ? $this->request->post['shipping_method'] : '',
+                    'city_code' => isset($this->request->post['city_code']) ? $this->request->post['city_code'] : '',
+                    'branch_code' => isset($this->request->post['branch_code']) ? $this->request->post['branch_code'] : '',
+                    'address_code' => isset($this->request->post['address_code']) ? $this->request->post['address_code'] : '',
+                    'building' => isset($this->request->post['building']) ? $this->request->post['building'] : '',
+                    'region_code' => isset($this->request->post['region_code']) ? $this->request->post['region_code'] : ''
+                );
+
+                $this->model_extension_shipping_meest2->saveOrderShippingData($order_id, $data);
+                $json['success'] = true;
+            } else {
+                $json['error'] = 'Order ID not found';
+            }
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
+    public function addAssets(&$route, &$data) {
+
+        $current_route = isset($this->request->get['route']) ? $this->request->get['route'] : '';
+
+        $allowed_routes = array(
+            'checkout/checkout',
+            'checkout/simplecheckout',
+            'checkout/quick_checkout',
+            'checkout/ajax_quick_checkout',
+            'checkout/uni_checkout',
+            'extension/checkout/checkout',
+            'extension/d_quickcheckout/confirm',
+            'extension/d_ajax_checkout/checkout',
+            'extension/checkout/oct_fastorder',
+            'journal3/checkout',
+            'checkout/buy',
+            'extension/quickcheckout/checkout'
+        );
+        
+        if (!in_array($current_route, $allowed_routes)) {
+            return;
+        }
+
+        $this->load->language('extension/shipping/meest2');
+
+        $this->document->addStyle(
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+            'stylesheet'
+        );
+
+        $this->document->addScript(
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+            'header'
+        );
+
+        $this->document->addScript('catalog/view/javascript/meest2/checkout.js?v=' . time());
+
+        $this->document->addStyle('catalog/view/javascript/meest2/checkout.css');
+    }
+
+    public function afterAddOrder(&$route, &$args, &$output) {
+        $order_id = $output;
+
+        if ($order_id && isset($this->session->data['meest_data'])) {
+            $shippingMethodMeest = $this->session->data['meest_data'];
+
+            if (isset($shippingMethodMeest['shipping_method']) && strpos($shippingMethodMeest['shipping_method'], 'meest2.') === 0) {
+                $this->load->model('extension/shipping/meest2');
+
+                $data = array(
+                    'shipping_method' => $shippingMethodMeest['shipping_method'],
+                    'city_code' => isset($shippingMethodMeest['city_UUID']) ? $shippingMethodMeest['city_UUID'] : '',
+                    'branch_code' => isset($shippingMethodMeest['branch_code']) ? $shippingMethodMeest['branch_code'] : (isset($shippingMethodMeest['address_1_UUID']) && (strpos($shippingMethodMeest['shipping_method'], 'branch') !== false || strpos($shippingMethodMeest['shipping_method'], 'postomat') !== false) ? $shippingMethodMeest['address_1_UUID'] : ''),
+                    'address_code' => isset($shippingMethodMeest['address_code']) ? $shippingMethodMeest['address_code'] : (isset($shippingMethodMeest['address_1_UUID']) && (strpos($shippingMethodMeest['shipping_method'], 'door') !== false || strpos($shippingMethodMeest['shipping_method'], 'courier') !== false) ? $shippingMethodMeest['address_1_UUID'] : ''),
+                    'building' => isset($shippingMethodMeest['building']) ? $shippingMethodMeest['building'] : '',
+                    'region_code' => isset($shippingMethodMeest['region_code']) ? $shippingMethodMeest['region_code'] : ''
+                );
+
+                $this->model_extension_shipping_meest2->saveOrderShippingData($order_id, $data);
+            }
+        }
     }
 }

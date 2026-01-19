@@ -164,6 +164,26 @@ class ModelExtensionShippingMeest2 extends Model {
                 $this->db->query("ALTER TABLE `" . DB_PREFIX . "order` ADD `meest2_sender_address_pick_up` TINYINT(1) NOT NULL DEFAULT 0 AFTER `order_id`;");
             }
 
+            $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "meest2_order_shipping_data` (
+                  `id` INT(11) NOT NULL AUTO_INCREMENT,
+                  `order_id` INT(11) NOT NULL,
+                  `shipping_method` VARCHAR(100) NOT NULL,
+                  `city_code` VARCHAR(40) DEFAULT NULL,
+                  `branch_code` VARCHAR(40) DEFAULT NULL,
+                  `address_code` VARCHAR(40) DEFAULT NULL,
+                  `building` VARCHAR(100) DEFAULT NULL,
+                  `region_code` VARCHAR(40) DEFAULT NULL,
+                  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `order_id_unique` (`order_id`)
+                ) ENGINE=MyISAM DEFAULT CHARSET=utf8");
+
+            $column = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "meest2_order_shipping_data` LIKE 'building';");
+            if (!$column->num_rows) {
+                $this->db->query("ALTER TABLE `" . DB_PREFIX . "meest2_order_shipping_data` ADD `building` VARCHAR(100) DEFAULT NULL AFTER `address_code`;");
+            }
+
             $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "meest2_parcels` (
                   `id` INT(11) NOT NULL AUTO_INCREMENT,
                   `order_id` INT(11) NOT NULL,
@@ -200,7 +220,7 @@ class ModelExtensionShippingMeest2 extends Model {
     public function migrate($from_version = null, $typeInstall) {
         // if (version_compare((string)$from_version, self::PLUGIN_VERSION, '<')) {
         // }
-        // if (version_compare((string)$from_version, '1.2.0', '<')) { ... }
+        // if (version_compare((string)$from_version, '1.3.0', '<')) { ... }
     }
 
 
@@ -410,6 +430,16 @@ class ModelExtensionShippingMeest2 extends Model {
 
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest2_cities WHERE region_id = '" . $this->db->escape($region_id) . "'");
 
+        return $query->rows;
+    }
+
+    public function searchCities($search) {
+        $sql = "SELECT c.*, r.region_name_ua FROM " . DB_PREFIX . "meest2_cities c 
+                LEFT JOIN " . DB_PREFIX . "meest2_regions r ON c.region_id = r.region_id
+                WHERE c.name_ua LIKE '%" . $this->db->escape($search) . "%' 
+                   OR c.name_ru LIKE '%" . $this->db->escape($search) . "%' 
+                LIMIT 20";
+        $query = $this->db->query($sql);
         return $query->rows;
     }
 
@@ -925,5 +955,28 @@ class ModelExtensionShippingMeest2 extends Model {
         return isset($query->row['contractId']) ? $query->row['contractId'] : false;
     }
 
+    public function getOrderShippingData($order_id) {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "meest2_order_shipping_data` WHERE order_id = '" . (int)$order_id . "'");
+        return $query->row;
+    }
+
+    public function updateOrderShippingData($order_id, $data) {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "meest2_order_shipping_data` SET
+            order_id = '" . (int)$order_id . "',
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "'
+            ON DUPLICATE KEY UPDATE
+            shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
+            city_code = '" . $this->db->escape($data['city_code']) . "',
+            branch_code = '" . $this->db->escape($data['branch_code']) . "',
+            address_code = '" . $this->db->escape($data['address_code']) . "',
+            building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
+            region_code = '" . $this->db->escape($data['region_code']) . "',
+            updated_at = NOW()");
+    }
 
 }

@@ -144,26 +144,6 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-sm-2 col-form-label" for="input-free-shipping-enabled"><?php echo $entry_free_shipping_enabled; ?></label>
-                                <div class="col-sm-10">
-                                    <select name="meest2_free_shipping_enabled" id="input-free-shipping-enabled" class="form-control">
-                                        <?php if ($meest2_free_shipping_enabled) { ?>
-                                        <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
-                                        <option value="0"><?php echo $text_disabled; ?></option>
-                                        <?php } else { ?>
-                                        <option value="1"><?php echo $text_enabled; ?></option>
-                                        <option value="0" selected="selected"><?php echo $text_disabled; ?></option>
-                                        <?php } ?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-sm-2 col-form-label" for="input-free-shipping-threshold"><?php echo $entry_free_shipping_threshold; ?></label>
-                                <div class="col-sm-10">
-                                    <input type="text" name="meest2_free_shipping_threshold" value="<?php echo $meest2_free_shipping_threshold; ?>" placeholder="<?php echo $entry_free_shipping_threshold; ?>" id="input-free-shipping-threshold" class="form-control" />
-                                </div>
-                            </div>
-                            <div class="form-group">
                                 <label class="col-sm-2 col-form-label"
                                        for="input-status"><?php echo $entry_status; ?></label>
                                 <div class="col-sm-10">
@@ -244,6 +224,31 @@
                                    class="form-control"/>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 col-form-label"
+                               for="input-free-shipping-enabled"><?php echo $entry_free_shipping_enabled; ?></label>
+                        <div class="col-sm-10">
+                            <select name="meest2_free_shipping_enabled" id="input-free-shipping-enabled" class="form-control">
+                                <?php if ($meest2_free_shipping_enabled) { ?>
+                                    <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
+                                    <option value="0"><?php echo $text_disabled; ?></option>
+                                <?php } else { ?>
+                                    <option value="1"><?php echo $text_enabled; ?></option>
+                                    <option value="0" selected="selected"><?php echo $text_disabled; ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 col-form-label"
+                               for="input-free-shipping-threshold"><?php echo $entry_free_shipping_threshold; ?></label>
+                        <div class="col-sm-10">
+                            <input type="text" name="meest2_free_shipping_threshold"
+                                   value="<?php echo $meest2_free_shipping_threshold; ?>"
+                                   placeholder="<?php echo $entry_free_shipping_threshold; ?>" id="input-free-shipping-threshold"
+                                   class="form-control"/>
+                        </div>
+                    </div>
             </div>
             <div class="tab-pane" id="tab-database">
                 <div class="custom-table-wrapper">
@@ -301,7 +306,6 @@
                         </div>
                     </div>
                 </div>
-
 
 
                 <div class="custom-table">

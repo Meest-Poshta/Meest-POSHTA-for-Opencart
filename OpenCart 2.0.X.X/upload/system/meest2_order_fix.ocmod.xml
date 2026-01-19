@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Meest 2 Order Fix for OC 2.0</name>
+    <code>meest2_order_fix</code>
+    <version>1.0</version>
+    <author>Meest</author>
+    <file path="catalog/model/checkout/order.php">
+        <operation>
+            <search><![CDATA[$order_id = $this->db->getLastId();]]></search>
+            <add position="after"><![CDATA[
+		$this->load->controller('module/meest2/afterAddOrder', $order_id);
+            ]]></add>
+        </operation>
+    </file>
+</modification>

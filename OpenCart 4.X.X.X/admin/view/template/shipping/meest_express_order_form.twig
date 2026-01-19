@@ -217,7 +217,8 @@
                                         <input type="text" name="recipient_contact_person_phone" value="{{ recipient_contact_person_phone|default('') }}" placeholder="{{ entry_phone }}" id="input-recipient_contact_person_phone" class="form-control" />
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                {# Закоментовано поле регіону #}
+                                {# <div class="row mb-3">
                                     <label class="col-sm-3 col-form-label" for="input-recipient_region">{{ entry_region }}</label>
                                     <div class="col-sm-9">
                                         <select name="recipient_region" id="input-recipient_region" class="form-select">
@@ -227,7 +228,7 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                </div>
+                                </div> #}
                                 <div class="row mb-3">
                                     <label class="col-sm-3 col-form-label" for="input-recipient_city">{{ entry_city }}</label>
                                     <div class="col-sm-9">
@@ -259,7 +260,8 @@
                                         <input type="text" name="recipient_contact_person_phone_address" value="{{ recipient_contact_person_phone|default('') }}" placeholder="{{ entry_phone }}" id="input-recipient_contact_person_phone_address" class="form-control" />
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                {# Закоментовано поле регіону #}
+                                {# <div class="row mb-3">
                                     <label class="col-sm-3 col-form-label" for="input-recipient_region_address">{{ entry_region }}</label>
                                     <div class="col-sm-9">
                                         <select name="recipient_region_address" id="input-recipient_region_address" class="form-select">
@@ -269,7 +271,7 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                </div>
+                                </div> #}
                                 <div class="row mb-3">
                                     <label class="col-sm-3 col-form-label" for="input-recipient_city_address">{{ entry_city }}</label>
                                     <div class="col-sm-9">
@@ -282,23 +284,28 @@
                                     <label class="col-sm-3 col-form-label" for="input-recipient-address">{{ text_address }}</label>
                                     <div class="col-sm-9">
                                         <select name="recipient_address" id="input-recipient-address" class="form-select">
-                                            <option value="">{{ text_select }}</option>
+                                            {% if recipient_address_data %}
+                                                <option value="{{ recipient_address_data.street_id }}" selected>{{ recipient_address_data.type_ua }} {{ recipient_address_data.name_ua }}</option>
+                                            {% elseif order_shipping_data.address_code %}
+                                                <option value="{{ order_shipping_data.address_code }}" selected>{{ order_shipping_data.address_name ? order_shipping_data.address_name : order_shipping_data.address_code }}</option>
+                                            {% endif %}
                                         </select>
                                     </div>
                                 </div>
+                                {# Building, Floor, Apartment fields #}
                                 <div class="row mb-3">
                                     <label class="col-sm-3 col-form-label" for="input-recipient-building-address">{{ text_building }}</label>
                                     <div class="col-sm-9">
-                                        <input type="text" name="recipient_building_address" id="input-recipient-building-address" class="form-control" placeholder="{{ text_building }}">
+                                        <input type="text" name="recipient_building_address" id="input-recipient-building-address" class="form-control" placeholder="{{ text_building }}" value="{{ order_shipping_data.building|default('') }}">
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                <div class="row mb-3" style="display: none;">
                                     <label class="col-sm-3 col-form-label" for="input-recipient-floor-address">{{ text_floor }}</label>
                                     <div class="col-sm-9">
                                         <input type="text" name="recipient_floor_address" id="input-recipient-floor-address" class="form-control" placeholder="{{ text_floor }}">
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                <div class="row mb-3" style="display: none;">
                                     <label class="col-sm-3 col-form-label" for="input-recipient-apartment-address">{{ text_apartment }}</label>
                                     <div class="col-sm-9">
                                         <input type="text" name="recipient_apartment_address" id="input-recipient-apartment-address" class="form-control" placeholder="{{ text_apartment }}">
@@ -533,6 +540,16 @@
         shipping_meest2_recipient_city: '{{ shipping_meest2_recipient_city }}',
         shipping_meest2_recipient_address: '{{ shipping_meest2_recipient_address }}',
         recipient_contact_person_phone: '{{ recipient_contact_person_phone|default('') }}',
+        // Order shipping data from database
+        order_recipient_city_code: '{{ order_shipping_data.city_code|default('') }}',
+        order_recipient_branch_code: '{{ order_shipping_data.branch_code|default('') }}',
+        order_recipient_address_code: '{{ order_shipping_data.address_code|default('') }}',
+        order_shipping_method: '{{ order_shipping_data.shipping_method|default('') }}',
+        original_shipping_method_code: '{{ original_shipping_method_code|default('') }}',
+        // Recipient data objects
+        recipient_city_data: {{ recipient_city_data ? recipient_city_data|json_encode : 'null' }},
+        recipient_branch_data: {{ recipient_branch_data ? recipient_branch_data|json_encode : 'null' }},
+        recipient_address_data: {{ recipient_address_data ? recipient_address_data|json_encode : 'null' }},
         text_select: '{{ text_select }}',
         text_fill_required_fields: '{{ text_fill_required_fields }}',
         text_seat: '{{ text_seat }}',
@@ -595,7 +612,27 @@
             $('#input-recipient_city').select2({ 
                 placeholder: '{{ text_select }}',
                 allowClear: true,
-                width: '100%'
+                width: '100%',
+                ajax: {
+                    url: window.meest2OrderFormUrls.ajax_get_cities_url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function(city) {
+                                return {
+                                    id: city.city_id,
+                                    text: city.name_ua
+                                };
+                            })
+                        };
+                    }
+                }
             });
             $('#input-recipient_branch').select2({ 
                 placeholder: '{{ text_select }}',
@@ -612,12 +649,66 @@
             $('#input-recipient_city_address').select2({ 
                 placeholder: '{{ text_select }}',
                 allowClear: true,
-                width: '100%'
+                width: '100%',
+                ajax: {
+                    url: window.meest2OrderFormUrls.ajax_get_cities_url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function(city) {
+                                return {
+                                    id: city.city_id,
+                                    text: city.name_ua
+                                };
+                            })
+                        };
+                    }
+                }
             });
             $('#input-recipient-address').select2({ 
-                placeholder: '{{ text_select }}',
+                placeholder: '{{ text_address }}',
                 allowClear: true,
-                width: '100%'
+                width: '100%',
+                tags: true,
+                createTag: function (params) {
+                    var term = $.trim(params.term);
+                    if (term === '') {
+                        return null;
+                    }
+                    return {
+                        id: term,
+                        text: term,
+                        newTag: true
+                    }
+                },
+                ajax: {
+                    url: window.meest2OrderFormUrls.ajax_get_addresses_url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        var cityId = $('#input-recipient_city_address').val();
+                        return {
+                            city_id: cityId,
+                            search: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function(address) {
+                                return {
+                                    id: address.street_name_ua || address.name_ua,
+                                    text: address.street_name_ua || address.name_ua
+                                };
+                            })
+                        };
+                    }
+                }
             });
             
             // Contact person select
@@ -797,12 +888,9 @@
             $('#input-recipient_region_address').on('change', function() {
                 var regionId = $(this).val();
                 var $citySelect = $('#input-recipient_city_address');
-                var $addressSelect = $('#input-recipient-address');
             
             $citySelect.html('<option value="">{{ text_select }}</option>');
-            $addressSelect.html('<option value="">{{ text_select }}</option>');
             reinitSelect2('#input-recipient_city_address');
-            reinitSelect2('#input-recipient-address');
             
             if (regionId) {
                 $.ajax({
@@ -822,6 +910,8 @@
             }
         });
 
+        // Note: Address autocomplete is now handled by Select2 with tags and AJAX
+        /*
         // Load addresses when recipient city changes (for Doors delivery)
         $('#input-recipient_city_address').on('change', function() {
             var cityId = $(this).val();
@@ -848,6 +938,7 @@
                 });
             }
         });
+        */
 
             // Load cities when sender region changes (for Doors delivery)
             $('#input-sender-region-address').on('change', function() {
@@ -930,6 +1021,47 @@
             }
             if (!$('#input-recipient_contact_person_phone_address').val()) {
                 $('#input-recipient_contact_person_phone_address').val(window.meest2OrderFormUrls.recipient_contact_person_phone);
+            }
+        }
+        
+        // Auto-load recipient city and branch/address from order_shipping_data
+        if (window.meest2OrderFormUrls.recipient_city_data) {
+            var cityData = window.meest2OrderFormUrls.recipient_city_data;
+            var branchData = window.meest2OrderFormUrls.recipient_branch_data;
+            var addressData = window.meest2OrderFormUrls.recipient_address_data;
+            var shippingMethod = window.meest2OrderFormUrls.order_shipping_method || window.meest2OrderFormUrls.original_shipping_method_code;
+            
+            // Determine delivery type from shipping method
+            var isDoorsDelivery = shippingMethod && (shippingMethod.indexOf('door') !== -1 || shippingMethod.indexOf('courier') !== -1);
+            
+            if (isDoorsDelivery) {
+                // Switch to doors delivery
+                $('#recipient_doors').prop('checked', true).trigger('change');
+                
+                // Add city option and select it for Select2 with AJAX
+                var $citySelect = $('#input-recipient_city_address');
+                var cityOption = new Option(cityData.name_ua, cityData.city_id, true, true);
+                $citySelect.append(cityOption).trigger('change');
+                
+                // Add address option if available
+                if (addressData) {
+                    var $addressSelect = $('#input-recipient-address');
+                    var addressName = addressData.street_name_ua || addressData.name_ua;
+                    var addressOption = new Option(addressName, addressData.street_id, true, true);
+                    $addressSelect.append(addressOption).trigger('change');
+                }
+            } else if (branchData) {
+                // Branch delivery (default)
+                // Add city option and select it for Select2 with AJAX
+                var $citySelect = $('#input-recipient_city');
+                var cityOption = new Option(cityData.name_ua, cityData.city_id, true, true);
+                $citySelect.append(cityOption).trigger('change');
+                
+                // Add branch option and select it
+                var $branchSelect = $('#input-recipient_branch');
+                var branchName = branchData.branch_descr_ua || branchData.short_name || branchData.full_name;
+                $branchSelect.append('<option value="' + branchData.branch_id + '" selected>' + branchName + '</option>');
+                reinitSelect2('#input-recipient_branch');
             }
         }
         

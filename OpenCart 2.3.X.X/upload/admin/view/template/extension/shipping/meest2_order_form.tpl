@@ -212,7 +212,8 @@
                                     <input type="text" name="recipient_contact_person_phone" value="<?php echo $recipient_contact_person_phone; ?>" placeholder="<?php echo $entry_phone; ?>" id="input-recipient_contact_person_phone" class="custom-input-70" />
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <?php /* Закоментовано поле регіону */ ?>
+                            <?php /* <div class="form-group">
                                 <label class="col-sm-3 control-label" for="input-recipient_region"><?php echo $entry_region; ?></label>
                                 <div class="col-sm-9">
                                     <select name="recipient_region" id="input-recipient_region" class="form-control custom-select2">
@@ -224,7 +225,7 @@
                                         <?php } ?>
                                     </select>
                                 </div>
-                            </div>
+                            </div> */ ?>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label" for="input-recipient_city"><?php echo $entry_city; ?></label>
                                 <div class="col-sm-9">
@@ -255,7 +256,8 @@
                                     <input type="text" name="recipient_contact_person_phone_address" value="<?php echo $recipient_contact_person_phone; ?>" placeholder="<?php echo $entry_phone; ?>" id="input-recipient_contact_person_phone_address" class="custom-input-70" />
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <?php /* Закоментовано поле регіону */ ?>
+                            <?php /* <div class="form-group">
                                 <label class="col-sm-3 control-label" for="input-recipient_region_address"><?php echo $entry_region; ?></label>
                                 <div class="col-sm-9">
                                     <select name="recipient_region_address" id="input-recipient_region_address" class="form-control custom-select2">
@@ -267,7 +269,7 @@
                                         <?php } ?>
                                     </select>
                                 </div>
-                            </div>
+            </div> */ ?>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label" for="input-recipient_city_address"><?php echo $entry_city; ?></label>
                                 <div class="col-sm-9">
@@ -281,15 +283,19 @@
                                 <div class="col-sm-9">
                                     <select name="recipient_address" id="input-recipient-address" class="form-control custom-select2">
                                         <option value=""><?php echo $text_select; ?></option>
+                                        <?php if (!empty($order_shipping_data['address_code'])) { ?>
+                                        <option value="<?php echo $order_shipping_data['address_code']; ?>" selected><?php echo isset($order_shipping_data['address_name']) ? $order_shipping_data['address_name'] : $order_shipping_data['address_code']; ?></option>
+                                        <?php } ?>
                                     </select>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-sm-3 control-label" for="input-recipient-building-address"><?php echo $text_building; ?></label>
+                                <label class="col-sm-3 control-label" for="input-recipient-building-address">Будинок/Квартира</label>
                                 <div class="col-sm-9">
-                                    <input type="text" name="recipient_building_address" id="input-recipient-building-address" class="custom-input-70" placeholder="<?php echo $text_building; ?>">
+                                    <input type="text" name="recipient_building_address" id="input-recipient-building-address" class="custom-input-70" placeholder="Будинок/Квартира" value="<?php echo isset($order_shipping_data['building']) ? $order_shipping_data['building'] : ''; ?>">
                                 </div>
                             </div>
+                            <?php /* Приховані поля для поверху та квартири
                             <div class="form-group">
                                 <label class="col-sm-3 control-label" for="input-recipient-floor-address"><?php echo $text_floor; ?></label>
                                 <div class="col-sm-9">
@@ -302,7 +308,9 @@
                                     <input type="text" name="recipient_apartment_address" id="input-recipient-apartment-address" class="custom-input-70" placeholder="<?php echo $text_apartment; ?>">
                                 </div>
                             </div>
+                            */ ?>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -541,12 +549,14 @@
         ajax_get_cities_url: '<?php echo $ajax_get_cities_url; ?>',
         ajax_get_addresses_url: '<?php echo $ajax_get_addresses_url; ?>',
         ajax_get_branches_url: '<?php echo $ajax_get_branches_url; ?>',
+        ajax_search_cities_url: '<?php echo $ajax_search_cities_url; ?>',
         shipping_meest2_sender_region: '<?php echo $meest2_sender_region; ?>',
         shipping_meest2_sender_city: '<?php echo $meest2_sender_city; ?>',
         shipping_meest2_sender_address: '<?php echo $meest2_sender_address; ?>',
         shipping_meest2_sender_branch: '<?php echo $meest2_sender_branch; ?>',
         shipping_meest2_recipient_city: '',
         shipping_meest2_recipient_address: '',
+        order_shipping_data: <?php echo json_encode($order_shipping_data); ?>,
         text_select: '<?php echo $text_select; ?>',
         text_fill_required_fields: '<?php echo $text_fill_required_fields; ?>',
         text_seat: '<?php echo $text_seat; ?>',
