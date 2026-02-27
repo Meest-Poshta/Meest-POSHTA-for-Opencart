@@ -202,6 +202,20 @@
                     </td>
                   </tr>
                   <tr>
+                    <td>District</td>
+
+                    <td>{{ district_import_info.latest_update_date }}</td>
+                    <td>{{ district_import_info.total_records }}</td>
+                    <td>It will be updated regions list of the postal company. The action will not affect the
+                      standard districts</td>
+                    <td>
+                      <button type="button" onclick="updateDistricts()" id="button-update_district" class="btn btn-primary btn-sm">
+                        <i class="fas fa-sync-alt"></i> {{ button_refresh }}
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr>
                     <td>City</td>
                     <td>{{ cities_import_info.latest_date }}</td>
                     <td>{{ cities_import_info.total }}</td>
@@ -436,6 +450,7 @@
   window.meest2Urls = {
     importBranches: '{{ importBranches }}',
     importRegions: '{{ importRegions }}',
+    importDistricts: '{{ importDistricts }}',
     importCity: '{{ importCity }}',
     importStreets: '{{ importStreets }}',
     addContract: '{{ addContract }}',
@@ -576,7 +591,36 @@
       }
     });
   }
+  // Update regions function
+  function updateDistricts() {
+    var button = $('#button-update_district');
 
+    $.ajax({
+      url: window.meest2Urls.importDistricts,
+      type: 'post',
+      dataType: 'json',
+      beforeSend: function() {
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Loading...');
+      },
+      complete: function() {
+
+        button.prop('disabled', false).html('<i class="fas fa-sync-alt"></i> Refresh');
+      },
+      success: function(json) {
+
+        if (json['success']) {
+
+          location.reload();
+        } else {
+          alert(json['error']);
+        }
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+
+        alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+      }
+    });
+  }
   // Update cities function
   function updateCities() {
     var button = $('#button-update_city');

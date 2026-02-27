@@ -265,6 +265,7 @@ class MeestExpress extends Controller
         // Import URLs
         $data['importBranches'] = str_replace('&amp;','&',$this->url->link('extension/MeestExpress/shipping/meest_express.importBranches','user_token=' . $this->session->data['user_token'],true));
         $data['importRegions'] = str_replace('&amp;','&',$this->url->link('extension/MeestExpress/shipping/meest_express.importRegions', 'user_token=' . $this->session->data['user_token'], true));
+        $data['importDistricts'] = str_replace('&amp;','&',$this->url->link('extension/MeestExpress/shipping/meest_express.importDistricts', 'user_token=' . $this->session->data['user_token'], true));
         $data['importCity'] = str_replace('&amp;','&',$this->url->link('extension/MeestExpress/shipping/meest_express.importCity', 'user_token=' . $this->session->data['user_token'], true));
         $data['importStreets'] = str_replace('&amp;','&',$this->url->link('extension/MeestExpress/shipping/meest_express.importStreets', 'user_token=' . $this->session->data['user_token'], true));
         $data['addContract'] = str_replace('&amp;','&',$this->url->link('extension/MeestExpress/shipping/meest_express.addContract', 'user_token=' . $this->session->data['user_token'], true));
@@ -282,6 +283,7 @@ class MeestExpress extends Controller
         $data['regions_import_info'] = $this->model_extension_MeestExpress_shipping_meest_express->getRegionsTotalRecordsAndLatestDate();
         $data['cities_import_info'] = $this->model_extension_MeestExpress_shipping_meest_express->getCitiesTotalRecordsAndLatestDate();
         $data['streets_import_info'] = $this->model_extension_MeestExpress_shipping_meest_express->getStreetsTotalRecordsAndLatestDate();
+        $data['district_import_info'] = $this->model_extension_MeestExpress_shipping_meest_express->getDistrictTotalRecordsAndLatestDate();
 
         $data['regions'] = $this->model_extension_MeestExpress_shipping_meest_express->getRegions();
         $data['contracts'] = $this->model_extension_MeestExpress_shipping_meest_express->getContracts();
@@ -428,6 +430,40 @@ class MeestExpress extends Controller
             $json = ['success' => false, 'error' => $e->getMessage()];
         }
 
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE));
+    }
+    public function importDistricts()
+    {
+
+        $this->load->model('extension/MeestExpress/shipping/meest_express');
+        $regions = $this->model_extension_MeestExpress_shipping_meest_express->getRegions();
+        foreach ($regions as $region) {
+
+
+            try {
+                $url = 'https://api.meest.com/v3.0/openAPI/districtSearch';
+
+                $data = [
+                    "filters" => [
+                        'regionID' => $region['region_id'],
+                    ]
+                ];
+
+                $response = $this->meestApiV3($url, $data);
+
+                $responseData = json_decode($response, true);
+                if (!isset($responseData['status']) || $responseData['status'] !== "OK") {
+                    throw new Exception('API Error: ' . json_encode($responseData, JSON_UNESCAPED_UNICODE));
+                }
+
+                $resultData = $this->model_extension_MeestExpress_shipping_meest_express->saveDistricts($responseData['result']);
+
+                $json = ['success' => true, 'data' => $resultData];
+            } catch (Exception $e) {
+                $json = ['success' => false, 'error' => $e->getMessage()];
+            }
+        }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE));
     }

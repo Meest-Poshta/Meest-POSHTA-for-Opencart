@@ -110,6 +110,26 @@ class MeestExpress extends Model
               UNIQUE KEY `branch_id_unique` (`branch_id`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8");
 
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX ."meest_express_district`");
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "meest_express_district` (
+                  `id` INT(11) NOT NULL AUTO_INCREMENT,
+                  
+                  `district_id` VARCHAR(40) DEFAULT NULL,             -- districtID
+                  `district_ua` VARCHAR(256) DEFAULT NULL,            -- districtDescr.descrUA
+                  `district_ru` VARCHAR(256) DEFAULT NULL,            -- districtDescr.descrRU
+                  `district_en` VARCHAR(256) DEFAULT NULL,            -- districtDescr.descrEN
+                  
+                  `region_id` VARCHAR(40) DEFAULT NULL,               -- regionID
+                  `region_ua` VARCHAR(256) DEFAULT NULL,              -- regionDescr.descrUA
+                  `region_ru` VARCHAR(256) DEFAULT NULL,              -- regionDescr.descrRU
+                  `region_en` VARCHAR(256) DEFAULT NULL,              -- regionDescr.descrEN
+                  
+                  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `district_id_unique` (`district_id`)
+                ) ENGINE=MyISAM DEFAULT CHARSET=utf8");
+
         // Create regions table
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "meest_express_regions`");
         $this->db->query('CREATE TABLE IF NOT EXISTS `' . DB_PREFIX . 'meest_express_regions` (
@@ -633,7 +653,71 @@ class MeestExpress extends Model
 
         return true;
     }
+    public function saveDistricts($data)
+    {
+        if(!empty($data)){
+            foreach ($data as $datum) {
+                $this->saveDistrict($datum);
+            }
+            $result['success'] = true;
+            $result['data'] = true;
 
+            return $result;
+        }
+    }
+    public function saveDistrict($branchData) {
+        $dataToSave = [
+            'district_id'               => $branchData['districtID'] ?? null,
+            'district_ua'               => isset($branchData['districtDescr']['descrUA']) ? $branchData['districtDescr']['descrUA'] : null,
+            'district_ru'               => isset($branchData['districtDescr']['descrRU']) ? $branchData['districtDescr']['descrRU'] : null,
+            'district_en'               => isset($branchData['districtDescr']['descrEN']) ? $branchData['districtDescr']['descrEN'] : null,
+            'district_loc'              => isset($branchData['districtDescr']['descrLoc']) ? $branchData['districtDescr']['descrLoc'] : null,
+            'region_id'                 => $branchData['regionID'] ?? null,
+            'region_ua'                 => isset($branchData['regionDescr']['descrUA']) ? $branchData['regionDescr']['descrUA'] : null,
+            'region_ru'                 => isset($branchData['regionDescr']['descrRU']) ? $branchData['regionDescr']['descrRU'] : null,
+            'region_en'                 => isset($branchData['regionDescr']['descrEN']) ? $branchData['regionDescr']['descrEN'] : null,
+            'region_loc'                => isset($branchData['regionDescr']['descrLoc']) ? $branchData['regionDescr']['descrLoc'] : null,
+        ];
+
+        $existingBranch = $this->getDistrict($dataToSave['district_id']);
+        if (empty($existingBranch)) {
+            return  $this->addDistrict($dataToSave);
+        } else {
+            return   $this->editDistrict($dataToSave['district_id'], $dataToSave);
+        }
+
+    }
+    public function getDistrict($district_id) {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_district WHERE district_id = '" . $this->db->escape($district_id) . "'");
+
+        return $query->row;
+    }
+    public function addDistrict($data) {
+        $this->db->query("INSERT INTO " . DB_PREFIX . "meest_express_district SET
+            district_id = '" . $this->db->escape($data['district_id']) . "',
+            district_ua = '" . $this->db->escape($data['district_ua']) . "',
+            district_ru = '" . $this->db->escape($data['district_ru']) . "',
+            district_en = '" . $this->db->escape($data['district_en']) . "',
+            region_id = '" . $this->db->escape($data['region_id']) . "',
+            region_ua = '" . $this->db->escape($data['region_ua']) . "',
+            region_ru = '" . $this->db->escape($data['region_ru']) . "',
+            region_en = '" . $this->db->escape($data['region_en']) . "'
+        ");
+    }
+
+    public function editDistrict($district_id, $data) {
+        $this->db->query("UPDATE " . DB_PREFIX . "meest_express_district SET
+             district_id = '" . $this->db->escape($data['district_id']) . "',
+            district_ua = '" . $this->db->escape($data['district_ua']) . "',
+            district_ru = '" . $this->db->escape($data['district_ru']) . "',
+            district_en = '" . $this->db->escape($data['district_en']) . "',
+            region_id = '" . $this->db->escape($data['region_id']) . "',
+            region_ua = '" . $this->db->escape($data['region_ua']) . "',
+            region_ru = '" . $this->db->escape($data['region_ru']) . "',
+            region_en = '" . $this->db->escape($data['region_en']) . "'
+        WHERE district_id = '" . $this->db->escape($district_id) . "'
+        ");
+    }
     public function bulkUpdateCities($cities)
     {
         foreach ($cities as $cityData) {
@@ -937,12 +1021,18 @@ class MeestExpress extends Model
     }
 
     // Search methods
-    public function getCitiesByRegion($region_id)
-    {
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_cities WHERE region_id = '" . $this->db->escape($region_id) . "' ORDER BY name_ua");
+    public function getCitiesByRegion($region_id) {
+
+        $query = $this->db->query("SELECT c.*, CONCAT(
+            c.name_ua,
+            IFNULL(CONCAT(' (', d.district_ua, ' р-н)'), '')
+    ) AS name_ua 
+    FROM " . DB_PREFIX . "meest_express_cities c
+        LEFT JOIN " . DB_PREFIX . "meest_express_district  d ON (c.district_id = d.district_id)
+        WHERE c.region_id = '" . $this->db->escape($region_id) . "'");
+
         return $query->rows;
     }
-
     public function searchCities($search)
     {
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "meest_express_cities WHERE name_ua LIKE '%" . $this->db->escape($search) . "%' ORDER BY name_ua LIMIT 50");
@@ -1082,7 +1172,15 @@ class MeestExpress extends Model
         $query = $this->db->query("SELECT COUNT(*) as total, MAX(COALESCE(updated_at, creatеd_at)) as latest_date FROM `" . DB_PREFIX . "meest_express_regions`");
         return $query->row;
     }
+    public function getDistrictTotalRecordsAndLatestDate() {
 
+        $query = $this->db->query("SELECT COUNT(*) AS total_records, MAX(updated_at) AS latest_update_date FROM `" . DB_PREFIX . "meest_express_district`");
+
+        return [
+            'total_records' => $query->row['total_records'],
+            'latest_update_date' => $query->row['latest_update_date']
+        ];
+    }
     public function getCitiesTotalRecordsAndLatestDate()
     {
         $query = $this->db->query("SELECT COUNT(*) as total, MAX(COALESCE(updated_at, creatеd_at)) as latest_date FROM `" . DB_PREFIX . "meest_express_cities`");

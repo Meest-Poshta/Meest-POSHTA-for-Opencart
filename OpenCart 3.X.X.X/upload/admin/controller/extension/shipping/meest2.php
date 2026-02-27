@@ -1,9 +1,12 @@
 <?php
-class ControllerExtensionShippingMeest2 extends Controller {
+
+class ControllerExtensionShippingMeest2 extends Controller
+{
 
     private $error = [];
 
-    public function index()	 {
+    public function index()
+    {
 
         $this->load->model('extension/shipping/meest2');
 
@@ -123,18 +126,18 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
         $data['heading_title'] = $this->language->get('heading_title');
 
-        $data['text_edit']      = $this->language->get('text_edit');
-        $data['text_enabled']   = $this->language->get('text_enabled');
-        $data['text_disabled']  = $this->language->get('text_disabled');
+        $data['text_edit'] = $this->language->get('text_edit');
+        $data['text_enabled'] = $this->language->get('text_enabled');
+        $data['text_disabled'] = $this->language->get('text_disabled');
         $data['text_all_zones'] = $this->language->get('text_all_zones');
-        $data['text_none']      = $this->language->get('text_none');
+        $data['text_none'] = $this->language->get('text_none');
 
-        $data['entry_cost']       = $this->language->get('entry_cost');
-        $data['entry_tax_class']  = $this->language->get('entry_tax_class');
-        $data['entry_geo_zone']   = $this->language->get('entry_geo_zone');
-        $data['entry_status']     = $this->language->get('entry_status');
+        $data['entry_cost'] = $this->language->get('entry_cost');
+        $data['entry_tax_class'] = $this->language->get('entry_tax_class');
+        $data['entry_geo_zone'] = $this->language->get('entry_geo_zone');
+        $data['entry_status'] = $this->language->get('entry_status');
         $data['entry_sort_order'] = $this->language->get('entry_sort_order');
-        $data['entry_api_key']    = $this->language->get('entry_api_key');
+        $data['entry_api_key'] = $this->language->get('entry_api_key');
         $data['entry_free_shipping_enabled'] = $this->language->get('entry_free_shipping_enabled');
         $data['entry_free_shipping_threshold'] = $this->language->get('entry_free_shipping_threshold');
 
@@ -162,11 +165,11 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
         $data['entry_type_of_data'] = $this->language->get('entry_type_of_data');
         $data['entry_last_updated'] = $this->language->get('entry_last_updated');
-        $data['entry_amount']       = $this->language->get('entry_amount');
-        $data['entry_description']  = $this->language->get('entry_description');
-        $data['entry_action']       = $this->language->get('entry_action');
+        $data['entry_amount'] = $this->language->get('entry_amount');
+        $data['entry_description'] = $this->language->get('entry_description');
+        $data['entry_action'] = $this->language->get('entry_action');
 
-        $data['button_save']   = $this->language->get('button_save');
+        $data['button_save'] = $this->language->get('button_save');
         $data['button_cancel'] = $this->language->get('button_cancel');
 
 
@@ -274,37 +277,39 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
         $data['services'] = [
             [
-                'text'  => $this->language->get('text_shipping_warehouse'),
+                'text' => $this->language->get('text_shipping_warehouse'),
                 'value' => 'warehouse'
             ],
             [
-                'text'  => $this->language->get('text_shipping_postomat'),
+                'text' => $this->language->get('text_shipping_postomat'),
                 'value' => 'postomat'
             ],
             [
-                'text'  => $this->language->get('text_shipping_courier'),
+                'text' => $this->language->get('text_shipping_courier'),
                 'value' => 'courier'
             ]
         ];
-        $data['importBranches'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/importBranches','user_token=' . $this->session->data['user_token'],true));
+        $data['importBranches'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/importBranches', 'user_token=' . $this->session->data['user_token'], true));
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
 
-        $data['importRegions'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/importRegions', 'user_token=' . $this->session->data['user_token'], true));
-        $data['importCity'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/importCity', 'user_token=' . $this->session->data['user_token'], true));
-        $data['importStreets'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/importStreets', 'user_token=' . $this->session->data['user_token'], true));
-        $data['addContract'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/addContract', 'user_token=' . $this->session->data['user_token'], true));
-        $data['addContact'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/addContact', 'user_token=' . $this->session->data['user_token'], true));
-        $data['deleteContract'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/deleteContract', 'user_token=' . $this->session->data['user_token'], true));
-        $data['deleteContact'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/deleteContact', 'user_token=' . $this->session->data['user_token'], true));
+        $data['importRegions'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/importRegions', 'user_token=' . $this->session->data['user_token'], true));
+        $data['importDistricts'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/importDistricts', 'user_token=' . $this->session->data['user_token'], true));
+        $data['importCity'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/importCity', 'user_token=' . $this->session->data['user_token'], true));
+        $data['importStreets'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/importStreets', 'user_token=' . $this->session->data['user_token'], true));
+        $data['addContract'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/addContract', 'user_token=' . $this->session->data['user_token'], true));
+        $data['addContact'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/addContact', 'user_token=' . $this->session->data['user_token'], true));
+        $data['deleteContract'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/deleteContract', 'user_token=' . $this->session->data['user_token'], true));
+        $data['deleteContact'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/deleteContact', 'user_token=' . $this->session->data['user_token'], true));
 
         $data['ajax_get_cities_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getCitiesByRegion', 'user_token=' . $this->session->data['user_token'], true));
         $data['ajax_get_branches_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getBranchesByCity', 'user_token=' . $this->session->data['user_token'], true));
         $data['ajax_get_addresses_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getStreetsByCity', 'user_token=' . $this->session->data['user_token'], true));
 
         $data['branch_import_info'] = $this->model_extension_shipping_meest2->getBranchTotalRecordsAndLatestDate();
+        $data['district_import_info'] = $this->model_extension_shipping_meest2->getDistrictTotalRecordsAndLatestDate();
         $data['regions_import_info'] = $this->model_extension_shipping_meest2->getRegionsTotalRecordsAndLatestDate();
         $data['cities_import_info'] = $this->model_extension_shipping_meest2->getCitiesTotalRecordsAndLatestDate();
         $data['streets_import_info'] = $this->model_extension_shipping_meest2->getStreetsTotalRecordsAndLatestDate();
@@ -327,7 +332,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput($this->load->view('extension/shipping/meest2', $data));
     }
 
-    public function install() {
+    public function install()
+    {
 
         $this->load->model('setting/event');
 
@@ -348,7 +354,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->model_extension_shipping_meest2->install(true);
     }
 
-    public function uninstall() {
+    public function uninstall()
+    {
 
         $this->load->model('setting/event');
         $this->model_setting_event->deleteEventByCode('meest2_header_assets');
@@ -356,7 +363,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
     }
 
-    public function importBranches() {
+    public function importBranches()
+    {
 
         $this->load->model('extension/shipping/meest2');
 
@@ -387,7 +395,43 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE));
     }
 
-    protected function validate() {
+    public function importDistricts()
+    {
+
+        $this->load->model('extension/shipping/meest2');
+        $regions = $this->model_extension_shipping_meest2->getRegions();
+        foreach ($regions as $region) {
+
+
+            try {
+                $url = 'https://api.meest.com/v3.0/openAPI/districtSearch';
+
+                $data = [
+                    "filters" => [
+                        'regionID' => $region['region_id'],
+                    ]
+                ];
+
+                $response = $this->meestApiV3($url, $data);
+
+                $responseData = json_decode($response, true);
+                if (!isset($responseData['status']) || $responseData['status'] !== "OK") {
+                    throw new Exception('API Error: ' . json_encode($responseData, JSON_UNESCAPED_UNICODE));
+                }
+
+                $resultData = $this->model_extension_shipping_meest2->saveDistricts($responseData['result']);
+
+                $json = ['success' => true, 'data' => $resultData];
+            } catch (Exception $e) {
+                $json = ['success' => false, 'error' => $e->getMessage()];
+            }
+        }
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE));
+    }
+
+    protected function validate()
+    {
         if (!$this->user->hasPermission('modify', 'extension/shipping/meest2')) {
             $this->error['warning'] = $this->language->get('error_permission');
         }
@@ -395,7 +439,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         return !$this->error;
     }
 
-    public function importRegions() {
+    public function importRegions()
+    {
         $json = [];
 
         $zoneRegionMap = [
@@ -481,7 +526,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function importCity() {
+    public function importCity()
+    {
         $json = [];
 
         try {
@@ -574,7 +620,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function addContract() {
+    public function addContract()
+    {
         $this->load->language('extension/shipping/meest2');
         $json = [];
         if (isset($this->request->post['contract_id']) && $this->request->post['contract_id']) {
@@ -592,7 +639,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function deleteContract() {
+    public function deleteContract()
+    {
         $this->load->language('extension/shipping/meest2');
         $json = [];
 
@@ -611,7 +659,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function addContact() {
+    public function addContact()
+    {
         $this->load->language('extension/shipping/meest2');
         $this->load->model('extension/shipping/meest2');
 
@@ -634,7 +683,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function deleteContact() {
+    public function deleteContact()
+    {
         $this->load->language('extension/shipping/meest2');
         $this->load->model('extension/shipping/meest2');
 
@@ -654,7 +704,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function getContacts() {
+    public function getContacts()
+    {
         $this->load->model('extension/shipping/meest2');
 
         $data['contacts'] = $this->model_extension_shipping_meest2->getContacts();
@@ -662,7 +713,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($data));
     }
 
-    public function getCitiesByRegion() {
+    public function getCitiesByRegion()
+    {
         $json = [];
 
         if (isset($this->request->get['region_id'])) {
@@ -676,7 +728,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function getStreetsByCity() {
+    public function getStreetsByCity()
+    {
         $json = [];
 
         if (isset($this->request->get['city_id'])) {
@@ -690,7 +743,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function getBranchesByCity() {
+    public function getBranchesByCity()
+    {
         $json = [];
         if (isset($this->request->get['city_id'])) {
             $this->load->model('extension/shipping/meest2');
@@ -702,12 +756,13 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function searchCities() {
+    public function searchCities()
+    {
         $json = [];
         $this->load->model('extension/shipping/meest2');
-        
+
         $search = isset($this->request->get['search']) ? $this->request->get['search'] : '';
-        
+
         // Отримуємо міста з областями з бази даних за пошуковим запитом
         $query = $this->db->query("
             SELECT c.city_id, c.name_ua, r.region_name_ua 
@@ -717,7 +772,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
             ORDER BY c.name_ua ASC 
             LIMIT 50
         ");
-        
+
         foreach ($query->rows as $row) {
             $json[] = array(
                 'city_id' => $row['city_id'],
@@ -730,7 +785,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
-    public function orderForm() {
+    public function orderForm()
+    {
         $this->load->language('extension/shipping/meest2');
 
         $this->document->setTitle($this->language->get('heading_title_order_form'));
@@ -764,7 +820,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
                 $quantity = isset($place['quantity']) ? $place['quantity'] : 1;
 
                 $placesItems[] = array(
-                    "formatID"  => '',
+                    "formatID" => '',
                     "insurance" => isset($place['insurance']) ? $place['insurance'] : 0,
                     "height" => $height,
                     "length" => $length,
@@ -779,7 +835,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
             // Получаем существующие данные доставки из таблицы meest2_order_shipping_data
             $existing_shipping_data = $this->model_extension_shipping_meest2->getOrderShippingData($order_info['order_id']);
-            
+
             // Нормализуем старые значения shipping_method к новому формату
             if (!empty($existing_shipping_data['shipping_method'])) {
                 $old_method = $existing_shipping_data['shipping_method'];
@@ -789,68 +845,67 @@ class ControllerExtensionShippingMeest2 extends Controller {
                     $existing_shipping_data['shipping_method'] = 'meest2.door';
                 }
             }
-            
+
             // Создаем массив с новыми данными, сохраняя существующие значения для полей, которые не обновляются
             $shipping_data = array(
                 'shipping_method' => $postData['recipient_delivery_type'] === 'doors' ? 'meest2.door' : 'meest2.branch',
-                'city_code' => $postData['recipient_delivery_type'] === 'doors' ? 
-                    (isset($postData['recipient_city_address']) ? $postData['recipient_city_address'] : '') : 
+                'city_code' => $postData['recipient_delivery_type'] === 'doors' ?
+                    (isset($postData['recipient_city_address']) ? $postData['recipient_city_address'] : '') :
                     (isset($postData['recipient_city']) ? $postData['recipient_city'] : ''),
-                'branch_code' => $postData['recipient_delivery_type'] === 'branch' ? 
+                'branch_code' => $postData['recipient_delivery_type'] === 'branch' ?
                     (isset($postData['recipient_branch']) ? $postData['recipient_branch'] : '') : '',
-                'address_code' => $postData['recipient_delivery_type'] === 'doors' ? 
+                'address_code' => $postData['recipient_delivery_type'] === 'doors' ?
                     (isset($postData['recipient_address']) ? $postData['recipient_address'] : '') : '',
-                'building' => $postData['recipient_delivery_type'] === 'doors' ? 
+                'building' => $postData['recipient_delivery_type'] === 'doors' ?
                     (isset($postData['recipient_building_address']) ? $postData['recipient_building_address'] : '') : '',
                 'region_code' => isset($existing_shipping_data['region_code']) ? $existing_shipping_data['region_code'] : ''
             );
-            
+
             // Если есть существующие данные, объединяем их с новыми, чтобы не потерять поля, которые не обновляются в этой форме
             if (!empty($existing_shipping_data)) {
                 $shipping_data = array_merge($existing_shipping_data, $shipping_data);
             }
-            
-            $this->model_extension_shipping_meest2->updateOrderShippingData($order_info['order_id'], $shipping_data);
 
+            $this->model_extension_shipping_meest2->updateOrderShippingData($order_info['order_id'], $shipping_data);
 
 
             $senderPerson = $this->model_extension_shipping_meest2->getContact($this->config->get('shipping_meest2_sender_contact_person'));
 //            $senderPerson = $senderPerson[0];
             $senderAddressPickUp = 0;
 
-            if($postData['sender_delivery_type'] === 'doors'){
+            if ($postData['sender_delivery_type'] === 'doors') {
                 $senderData = array(
-                    "name" => $senderPerson['lastname'] . ' ' . $senderPerson['firstname'] . ' ' .  $senderPerson['middlename'],
+                    "name" => $senderPerson['lastname'] . ' ' . $senderPerson['firstname'] . ' ' . $senderPerson['middlename'],
                     "phone" => $senderPerson['phone'],
                     "service" => "Door",
                     "addressID" => $postData['sender_address'],
-                    "cityID"    => $postData['shipping_meest2_sender_city'],
-                    "building"  => $postData['sender_building'],
-                    "floor"   => $postData['sender_floor'],
-                    "flat"   => $postData['sender_apartment']
+                    "cityID" => $postData['shipping_meest2_sender_city'],
+                    "building" => $postData['sender_building'],
+                    "floor" => $postData['sender_floor'],
+                    "flat" => $postData['sender_apartment']
                 );
                 $senderAddressPickUp = 1;
-            }else{
+            } else {
                 $senderData = array(
-                    "name" => $senderPerson['lastname'] . ' ' . $senderPerson['firstname'] . ' ' .  $senderPerson['middlename'],
+                    "name" => $senderPerson['lastname'] . ' ' . $senderPerson['firstname'] . ' ' . $senderPerson['middlename'],
                     "phone" => $senderPerson['phone'],
                     "service" => "Branch",
                     "branchID" => $postData['sender_branch']
                 );
             }
 
-            if($postData['recipient_delivery_type'] === 'doors'){
+            if ($postData['recipient_delivery_type'] === 'doors') {
                 $recipientData = array(
                     "name" => $postData['recipient_contact_person_address'],
                     "phone" => $postData['recipient_contact_person_phone_address'],
                     "service" => "Door",
                     "addressID" => $postData['recipient_address'],
-                    "cityID"    => $postData['recipient_city_address'],
-                    "building"  => $postData['recipient_building_address'],
-                    "floor"   => $postData['recipient_floor_address'],
-                    "flat"   => $postData['recipient_apartment_address']
+                    "cityID" => $postData['recipient_city_address'],
+                    "building" => $postData['recipient_building_address'],
+                    "floor" => $postData['recipient_floor_address'],
+                    "flat" => $postData['recipient_apartment_address']
                 );
-            }else{
+            } else {
                 $recipientData = array(
                     "name" => $postData['recipient_contact_person'],
                     "phone" => $postData['recipient_contact_person_phone'],
@@ -864,7 +919,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
             $cardForCOD = [];
             if ($codAmount) {
                 $cardNumber = isset($postData['card_number']) ? $postData['card_number'] : '';
-                if($cardNumber) {
+                if ($cardNumber) {
                     $cardForCOD = [
                         'number' => $cardNumber,
                         'ownername' => isset($postData['ownername']) ? $postData['ownername'] : '',
@@ -901,11 +956,11 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
                 $dataResponse = json_decode($response, true);
 
-                $status         = isset($dataResponse['status']) ? $dataResponse['status'] : '';
-                $message        = isset($dataResponse['info']['message']) ? $dataResponse['info']['message'] : '';
-                $fieldName      = isset($dataResponse['info']['fieldName']) ? $dataResponse['info']['fieldName'] : '';
+                $status = isset($dataResponse['status']) ? $dataResponse['status'] : '';
+                $message = isset($dataResponse['info']['message']) ? $dataResponse['info']['message'] : '';
+                $fieldName = isset($dataResponse['info']['fieldName']) ? $dataResponse['info']['fieldName'] : '';
                 $messageDetails = isset($dataResponse['info']['messageDetails']) ? $dataResponse['info']['messageDetails'] : '';
-                $errorCode      = isset($dataResponse['info']['errorCode']) ? ', errorCode: ' . $dataResponse['info']['errorCode'] : '';
+                $errorCode = isset($dataResponse['info']['errorCode']) ? ', errorCode: ' . $dataResponse['info']['errorCode'] : '';
 
                 if (!isset($dataResponse['status']) || $dataResponse['status'] !== "OK") {
                     $this->session->data['error_warning'] = $status . '. ' . $message . ' ' . $fieldName . ', ' . $messageDetails . ' ' . $errorCode;
@@ -967,12 +1022,12 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
             if ($product_info) {
                 $order_products_details[] = array(
-                    'name'      => $product_info['name'],
-                    'weight'    => $product_info['weight'],
-                    'length'    => $product_info['length'],
-                    'width'     => $product_info['width'],
-                    'height'    => $product_info['height'],
-                    'quantity'  => $product['quantity']
+                    'name' => $product_info['name'],
+                    'weight' => $product_info['weight'],
+                    'length' => $product_info['length'],
+                    'width' => $product_info['width'],
+                    'height' => $product_info['height'],
+                    'quantity' => $product['quantity']
                 );
             }
         }
@@ -1103,10 +1158,10 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
         $data['sender_person'] = implode(' ', $nameParts);
 
-        $data['sender_phone']  = isset($senderPerson['phone']) ? $senderPerson['phone'] : '';
+        $data['sender_phone'] = isset($senderPerson['phone']) ? $senderPerson['phone'] : '';
 
         $data['ajax_get_cities_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getCitiesByRegion', 'user_token=' . $this->session->data['user_token'], true));
-        
+
         $data['ajax_search_cities_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/searchCities', 'user_token=' . $this->session->data['user_token'], true));
 
         $data['ajax_get_addresses_url'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/getStreetsByCity', 'user_token=' . $this->session->data['user_token'], true));
@@ -1148,9 +1203,9 @@ class ControllerExtensionShippingMeest2 extends Controller {
                 if (!empty($data['order_shipping_data']['city_code'])) {
                     require_once(DIR_SYSTEM . 'library/meest.php');
                     $meest = new Meest($this->registry);
-                    
+
                     $result = $meest->geo_streets(['city_id' => $data['order_shipping_data']['city_code']]);
-                    
+
                     if (!empty($result['result'])) {
                         foreach ($result['result'] as $street) {
                             if ($street['street_id'] === $data['order_shipping_data']['address_code']) {
@@ -1160,13 +1215,13 @@ class ControllerExtensionShippingMeest2 extends Controller {
                         }
                     }
                 }
-                
+
                 if (empty($data['order_shipping_data']['address_name'])) {
                     $data['order_shipping_data']['address_name'] = $data['order_shipping_data']['address_code'];
                 }
             }
         }
-        
+
         // Отримуємо назву міста з таблиці meest2_cities по UUID
         if (!empty($data['order_shipping_data']['city_code'])) {
             $city_query = $this->db->query("SELECT name_ua FROM " . DB_PREFIX . "meest2_cities WHERE city_id = '" . $this->db->escape($data['order_shipping_data']['city_code']) . "'");
@@ -1174,7 +1229,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
                 $data['order_shipping_data']['city_name'] = $city_query->row['name_ua'];
             }
         }
-        
+
         $data['shipping_meest2_recipient_contact_person'] = $this->config->get('shipping_meest2_recipient_contact_person');
 
 
@@ -1183,11 +1238,11 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $data['footer'] = $this->load->controller('common/footer');
 
 
-
         $this->response->setOutput($this->load->view('extension/shipping/meest2_order_form', $data));
     }
 
-    protected function validateOrderForm() {
+    protected function validateOrderForm()
+    {
         if (!$this->user->hasPermission('modify', 'extension/shipping/meest2')) {
             $this->error['warning'] = $this->language->get('error_permission');
         }
@@ -1195,7 +1250,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         return !$this->error;
     }
 
-    private function auth() {
+    private function auth()
+    {
         $url = 'https://api.meest.com/v3.0/openAPI/auth';
 
         $authMode = $this->config->get('shipping_meest2_auth_mode');
@@ -1236,7 +1292,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         return $responseData;
     }
 
-    public function orderUpdateForm() {
+    public function orderUpdateForm()
+    {
         $this->load->language('extension/shipping/meest2');
 
         $this->document->setTitle($this->language->get('heading_title_order_update_form'));
@@ -1266,7 +1323,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
                 $width = isset($place['width']) ? $place['width'] : 0;
 
                 $placesItems[] = array(
-                    "formatID"  => '',
+                    "formatID" => '',
                     "insurance" => isset($place['insurance']) ? $place['insurance'] : 0,
                     "height" => $height,
                     "length" => $length,
@@ -1278,20 +1335,20 @@ class ControllerExtensionShippingMeest2 extends Controller {
             }
             $senderAddressPickUp = 0;
 
-            if($postData['sender_delivery_type'] === 'doors'){
+            if ($postData['sender_delivery_type'] === 'doors') {
                 $senderData = array(
                     "name" => $postData['sender_person-address'],
                     "phone" => $postData['sender_phone-address'],
                     "service" => "Door",
                     "addressID" => $postData['sender_address'],
-                    "cityID"    => $postData['sender_city_address'],
-                    "building"  => $postData['sender_building'],
-                    "floor"   => $postData['sender_floor'],
-                    "flat"   => $postData['sender_apartment']
+                    "cityID" => $postData['sender_city_address'],
+                    "building" => $postData['sender_building'],
+                    "floor" => $postData['sender_floor'],
+                    "flat" => $postData['sender_apartment']
                 );
 
                 $senderAddressPickUp = 1;
-            }else{
+            } else {
                 $senderData = array(
                     "name" => $postData['sender_person'],
                     "phone" => $postData['sender_phone'],
@@ -1300,18 +1357,18 @@ class ControllerExtensionShippingMeest2 extends Controller {
                 );
             }
 
-            if($postData['recipient_delivery_type'] === 'doors'){
+            if ($postData['recipient_delivery_type'] === 'doors') {
                 $recipientData = array(
                     "name" => $postData['recipient-address'],
                     "phone" => $postData['recipient_phone-address'],
                     "service" => "Door",
                     "addressID" => $postData['recipient_address'],
-                    "cityID"    => $postData['recipient_city_address'],
-                    "building"  => $postData['recipient_building_address'],
-                    "floor"   => $postData['recipient_floor_address'],
-                    "flat"   => $postData['recipient_apartment_address']
+                    "cityID" => $postData['recipient_city_address'],
+                    "building" => $postData['recipient_building_address'],
+                    "floor" => $postData['recipient_floor_address'],
+                    "flat" => $postData['recipient_apartment_address']
                 );
-            }else{
+            } else {
                 $recipientData = array(
                     "name" => $postData['recipient'],
                     "phone" => $postData['recipient_phone'],
@@ -1325,7 +1382,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
             $cardForCOD = [];
             if ($codAmount) {
                 $cardNumber = isset($postData['card_number']) ? $postData['card_number'] : '';
-                if($cardNumber) {
+                if ($cardNumber) {
                     $cardForCOD = [
                         'number' => $cardNumber,
                         'ownername' => isset($postData['ownername']) ? $postData['ownername'] : '',
@@ -1338,13 +1395,13 @@ class ControllerExtensionShippingMeest2 extends Controller {
             $contractID = $this->model_extension_shipping_meest2->getContractIdByUuid($postData['meest2_cn_uuid']);
             $postInfo = array(
                 "sendingDate" => date('d.m.Y'),
-                "contractID"  => $contractID,
-                "COD"         => isset($postData['cod_amount']) ? $postData['cod_amount'] : "0",
+                "contractID" => $contractID,
+                "COD" => isset($postData['cod_amount']) ? $postData['cod_amount'] : "0",
                 "placesItems" => $placesItems,
-                "payType"     => $postData['payment_type'],
+                "payType" => $postData['payment_type'],
                 "receiverPay" => $postData['delivery_payer'] === 'Receiver' ? true : false,
-                "sender"      => $senderData,
-                "receiver"    => $recipientData
+                "sender" => $senderData,
+                "receiver" => $recipientData
             );
 
             if (!empty($cardForCOD)) {
@@ -1357,11 +1414,11 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
                 $dataResponse = json_decode($response, true);
 
-                $status         = isset($dataResponse['status']) ? $dataResponse['status'] : '';
-                $message        = isset($dataResponse['info']['message']) ? $dataResponse['info']['message'] : '';
-                $fieldName      = isset($dataResponse['info']['fieldName']) ? $dataResponse['info']['fieldName'] : '';
+                $status = isset($dataResponse['status']) ? $dataResponse['status'] : '';
+                $message = isset($dataResponse['info']['message']) ? $dataResponse['info']['message'] : '';
+                $fieldName = isset($dataResponse['info']['fieldName']) ? $dataResponse['info']['fieldName'] : '';
                 $messageDetails = isset($dataResponse['info']['messageDetails']) ? $dataResponse['info']['messageDetails'] : '';
-                $errorCode      = isset($dataResponse['info']['errorCode']) ? ', errorCode: ' . $dataResponse['info']['errorCode'] : '';
+                $errorCode = isset($dataResponse['info']['errorCode']) ? ', errorCode: ' . $dataResponse['info']['errorCode'] : '';
 
                 if (!isset($dataResponse['status']) || $dataResponse['status'] !== "OK") {
                     $this->session->data['get_info_for_edit_error'] = $status . '. ' . $message . ' ' . $fieldName . ', ' . $messageDetails . ' ' . $errorCode;
@@ -1395,7 +1452,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
             $data['response'] = $parcelInfo;
             $data['parcel_info'] = $parcelInfo['result'];
 
-            if($parcelInfo['status'] === 'error') {
+            if ($parcelInfo['status'] === 'error') {
                 $data['header'] = $this->load->controller('common/header');
                 $data['column_left'] = $this->load->controller('common/column_left');
                 $data['footer'] = $this->load->controller('common/footer');
@@ -1425,14 +1482,14 @@ class ControllerExtensionShippingMeest2 extends Controller {
             $data['get_info_for_edit_error'] = '';
         }
 
-        if($data['parcel_info']['sender']['service'] === 'Door'){
+        if ($data['parcel_info']['sender']['service'] === 'Door') {
             $address = $this->model_extension_shipping_meest2->getStreet($data['parcel_info']['sender']['addressID']);
             $city = $this->model_extension_shipping_meest2->getCity($address['city_id']);
             $data['sender_city_id_address'] = $address['city_id'];
             $data['sender_region_id_address'] = isset($city['region_id']) ? $city['region_id'] : 0;
         }
 
-        if($data['parcel_info']['receiver']['service'] === 'Door'){
+        if ($data['parcel_info']['receiver']['service'] === 'Door') {
             $address = $this->model_extension_shipping_meest2->getStreet($data['parcel_info']['receiver']['addressID']);
             $city = $this->model_extension_shipping_meest2->getCity($address['city_id']);
             $data['receiver_city_id_address'] = $address['city_id'];
@@ -1508,7 +1565,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput($this->load->view('extension/shipping/meest2_update_shipment_form', $data));
     }
 
-    public function getParcelInfoFromAPI($parcelId) {
+    public function getParcelInfoFromAPI($parcelId)
+    {
         $apiUrl = "https://api.meest.com/v3.0/openAPI/getParcel/" . $parcelId . "/parcelID/objectData";
 
         try {
@@ -1531,7 +1589,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
     }
 
 
-    public function getParcelInfo() {
+    public function getParcelInfo()
+    {
 
         $this->load->language('extension/shipping/meest2');
 
@@ -1543,7 +1602,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
         try {
             $data['response'] = $this->getParcelInfoFromAPI($parcel_id);
-            if($data['response']['status'] === 'error') {
+            if ($data['response']['status'] === 'error') {
                 $status = isset($data['response']['status']) ? $data['response']['status'] : '';
                 $message = isset($data['response']['info']['message']) ? $data['response']['info']['message'] : '';
                 $fieldName = isset($data['response']['info']['fieldName']) ? $data['response']['info']['fieldName'] : '';
@@ -1578,7 +1637,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $this->response->setOutput($this->load->view('extension/shipping/meest2_parcel_info', $data));
     }
 
-    public function parcelList() {
+    public function parcelList()
+    {
         $this->load->language('extension/shipping/meest2');
 
         $this->document->setTitle($this->language->get('heading_title'));
@@ -1624,7 +1684,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
     }
 
 
-    public function createRegisterPickup() {
+    public function createRegisterPickup()
+    {
 
         $postData = $this->request->post;
 
@@ -1684,7 +1745,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         }
     }
 
-    public function getAvailableTimeSlots() {
+    public function getAvailableTimeSlots()
+    {
         try {
             $orderId = $this->request->get['order_id'];
 
@@ -1726,7 +1788,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         }
     }
 
-    public function unregisterPickup() {
+    public function unregisterPickup()
+    {
         $registerId = $this->request->post['register_id'];
         $orderId = $this->request->post['order_id'];
 
@@ -1771,7 +1834,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
     }
 
 
-    public function getParcelUUIDs() {
+    public function getParcelUUIDs()
+    {
         $this->load->model('sale/order');
 
         $order_ids = $this->request->post['orders'];
@@ -1793,7 +1857,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         }
     }
 
-    public function getRegisterIDs() {
+    public function getRegisterIDs()
+    {
         $this->load->model('sale/order');
 
         $order_ids = $this->request->post['orders'];
@@ -1845,7 +1910,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
      *
      * @return void Outputs a JSON response containing the updated statuses.
      */
-    public function updateOrderStatuses() {
+    public function updateOrderStatuses()
+    {
         $orderIdsParam = isset($this->request->get['order_ids']) ? $this->request->get['order_ids'] : '';
 
         if (!$orderIdsParam) {
@@ -1865,7 +1931,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
             $output = [
                 'success' => true,
-                'data'    => $updatedStatusesDefault
+                'data' => $updatedStatusesDefault
             ];
 
             $this->response->addHeader('Content-Type: application/json');
@@ -1875,9 +1941,9 @@ class ControllerExtensionShippingMeest2 extends Controller {
         }
 
         $eventCodeMapping = [
-            101  => 'Створено',
-            606  => 'Надіслано',
-            808  => 'Надіслано',
+            101 => 'Створено',
+            606 => 'Надіслано',
+            808 => 'Надіслано',
             1213 => 'Доставлено',
             1214 => 'Доставлено',
             1215 => 'Доставлено',
@@ -1928,7 +1994,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
         $output = [
             'success' => true,
-            'data'    => $updatedStatuses
+            'data' => $updatedStatuses
         ];
 
         $this->response->addHeader('Content-Type: application/json');
@@ -1946,7 +2012,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
      * @return array The API response as an associative array.
      */
 
-    private function getTrackingData($trackNumbers) {
+    private function getTrackingData($trackNumbers)
+    {
         $apiUrl = "https://api.meest.com/v3.0/openAPI/trackingAll/" . $trackNumbers;
 
         try {
@@ -1955,15 +2022,16 @@ class ControllerExtensionShippingMeest2 extends Controller {
         } catch (Exception $e) {
             return [
                 "status" => "error",
-                "info"   => [
-                    "message"         => $e->getMessage(),
-                    "messageDetails"  => ""
+                "info" => [
+                    "message" => $e->getMessage(),
+                    "messageDetails" => ""
                 ]
             ];
         }
     }
 
-    private function getPaymentApiMeestData($meest2OrderContractID) {
+    private function getPaymentApiMeestData($meest2OrderContractID)
+    {
         $url = "https://api.meest.com/v3.0/openAPI/contractClientInfo/$meest2OrderContractID";
 
         try {
@@ -1974,7 +2042,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         }
     }
 
-    protected function meestApiV3($url, $data, $token = null, $method = 'POST') {
+    protected function meestApiV3($url, $data, $token = null, $method = 'POST')
+    {
         if ($token === null) {
             $token = $this->getValidMeestToken();
         }
@@ -2004,7 +2073,8 @@ class ControllerExtensionShippingMeest2 extends Controller {
         return $response;
     }
 
-    protected function getValidMeestToken() {
+    protected function getValidMeestToken()
+    {
         $auth = $this->auth();
 
         if (is_array($auth) && isset($auth['status']) && $auth['status'] === 'error') {

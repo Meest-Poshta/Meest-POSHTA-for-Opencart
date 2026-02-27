@@ -78,13 +78,15 @@ class MeestExpress extends Model
 
     public function getCities($region_id, $search = '')
     {
-        $sql = "SELECT DISTINCT
+        $sql = "SELECT
             c.`city_id` AS id,
             c.`type_ua` AS type,
             c.`name_ua` AS name,
-            r.`region_name_ua` AS region
+            r.`region_name_ua` AS region,
+            d.`district_ua` AS district
         FROM `" . DB_PREFIX . "meest_express_cities` c
         LEFT JOIN `" . DB_PREFIX . "meest_express_regions` r ON c.`region_id` = r.`region_id`
+        LEFT JOIN `" . DB_PREFIX . "meest_express_district` d ON d.`district_id` = c.`district_id`
         WHERE 1";
 
         if ($region_id) {
@@ -130,7 +132,8 @@ class MeestExpress extends Model
                 'description' => $description,
                 'name' => $result['name'],
                 'type' => $result['type'],
-                'region' => $result['region']
+                'region' => $result['region'],
+                'district' => $result['district']
             );
         }
 

@@ -313,7 +313,7 @@ if (!window.meest2Loaded) {
                         .done(function (json) {
                             response($.map(json, function (item) {
                                 return {
-                                    label: `${item.type} ${item.name}, ${item.region}`,
+                                    label: `${item.type} ${item.name}, ${item.region} обл ( ${item.district} р-н)`,
                                     city: item.name,
                                     value: item.id
                                 };
