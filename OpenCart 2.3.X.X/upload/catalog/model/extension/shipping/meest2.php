@@ -223,7 +223,9 @@ class ModelExtensionShippingMeest2 extends Model {
                 } else {
                     $errorData = ($receiverMethod === $service && !empty($errorMessage)) ? $errorMessage : false;
                 }
-
+                if($service == 'courier'){
+                    $isFreeShipping = 0;
+                }
                 $serviceBaseCost = $isFreeShipping ? 0 : (isset($costs[$service]) ? $costs[$service] : 0);
                 
                 // Ensure it's a valid number

@@ -305,7 +305,9 @@ class MeestExpress extends Model
                 } else {
                     $errorData = ($receiverMethod === $service && !empty($errorMessage)) ? $errorMessage : false;
                 }
-
+                if($service == 'courier'){
+                    $isFreeShipping = 0;
+                }
                 $serviceCost = $isFreeShipping ? 0 : (!empty($costs[$service]) ? $costs[$service] : 0);
 
                 // Calculate cost with tax

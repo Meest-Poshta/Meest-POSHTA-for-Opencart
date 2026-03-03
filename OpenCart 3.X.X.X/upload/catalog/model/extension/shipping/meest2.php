@@ -310,7 +310,9 @@ class ModelExtensionShippingMeest2 extends Model {
                 } else {
                     $errorData = ($receiverMethod === $service && !empty($errorMessage)) ? $errorMessage : false;
                 }
-
+                if($service == 'courier'){
+                    $isFreeShipping = 0;
+                }
                 // Вартість сервісу з урахуванням безкоштовної доставки
                 $serviceBaseCost = $isFreeShipping ? 0 : (isset($costs[$service]) ? $costs[$service] : 0);
 

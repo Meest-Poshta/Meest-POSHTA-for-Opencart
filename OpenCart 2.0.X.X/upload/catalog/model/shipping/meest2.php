@@ -189,7 +189,9 @@ class ModelShippingMeest2 extends Model {
                 } else {
                     $errorData = ($receiverMethod === $service && !empty($errorMessage)) ? $errorMessage : false;
                 }
-
+                if($service == 'courier'){
+                    $isFreeShipping = 0;
+                }
                 // Переконуємось що вартість завжди числова
                 $serviceBaseCost = $isFreeShipping ? 0.0 : (float)(isset($costs[$service]) ? $costs[$service] : 0);
 
