@@ -50,6 +50,8 @@ $_['entry_amount']          = 'Amount';
 $_['entry_description']     = 'Description';
 $_['entry_action']          = 'Action';
 $_['entry_contract_id']     = 'ContractID';
+$_['entry_customer_shipping_pay']     = 'Payment for delivery upon receipt by the buyer';
+
 
 $_['tab_database']            = 'Database';
 $_['tab_sender']              = 'Sender';

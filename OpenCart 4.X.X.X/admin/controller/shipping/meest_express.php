@@ -84,6 +84,11 @@ class MeestExpress extends Controller
             $data['shipping_meest_express_api_key'] = $this->config->get('shipping_meest_express_api_key');
         }
 
+        if (isset($this->request->post['shipping_meest_express_customer_shipping_pay'])) {
+            $data['shipping_meest_express_customer_shipping_pay'] = $this->request->post['shipping_meest_express_customer_shipping_pay'];
+        } else {
+            $data['shipping_meest_express_customer_shipping_pay'] = $this->config->get('shipping_meest_express_customer_shipping_pay');
+        }
         // Sender settings
         $senderFields = [
             'sender_city', 'sender_address', 'sender_branch', 'sender_contract_id', 

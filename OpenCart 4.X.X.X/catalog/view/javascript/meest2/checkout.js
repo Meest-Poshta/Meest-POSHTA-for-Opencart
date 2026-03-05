@@ -1344,7 +1344,8 @@ if (!window.meest_expressLoaded) {
 
         // Сначала проверяем город
         if (currentCityInput && currentCityInput.is(':focus')) {
-            const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            // const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            const cityName = text;
 
             currentCityInput
                 .val(cityName)

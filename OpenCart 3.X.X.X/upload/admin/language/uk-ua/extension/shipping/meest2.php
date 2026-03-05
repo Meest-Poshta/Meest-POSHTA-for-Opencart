@@ -49,6 +49,7 @@ $_['entry_amount']            = 'Кількість';
 $_['entry_description']       = 'Опис';
 $_['entry_action']            = 'Дія';
 $_['entry_contract_id']       = 'ID контракту';
+$_['entry_customer_shipping_pay']     = 'Оплата за доставку при отриманні покупцем';
 
 $_['tab_database']            = 'База даних';
 $_['tab_sender']              = 'Відправник';

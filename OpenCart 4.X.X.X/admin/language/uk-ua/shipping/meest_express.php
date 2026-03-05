@@ -44,6 +44,7 @@ $_['entry_branch'] = 'Відділення';
 $_['entry_free_shipping_enabled'] = 'Увімкнути безкоштовну доставку';
 $_['entry_free_shipping_threshold'] = 'Сума для безкоштовної доставки';
 $_['help_free_shipping_threshold'] = 'Мінімальна сума замовлення для безкоштовної доставки';
+$_['entry_customer_shipping_pay']     = 'Оплата за доставку при отриманні покупцем';
 
 // Database
 $_['entry_type_of_data'] = 'Тип даних';

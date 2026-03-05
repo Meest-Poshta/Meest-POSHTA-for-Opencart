@@ -323,14 +323,18 @@ class MeestExpress extends Model
                     : $this->currency->format($costWithTax, $this->session->data['currency']);
 
                 // Create price HTML with class for JavaScript updates
-                $priceHtml = '<span class="meest-express-shipping-price" ' .
-                    'id="meest-express-price-' . $service . '" ' .
-                    'data-service="' . $service . '" ' .
-                    'data-cost="' . $serviceCost . '" ' .
-                    'data-cost-with-tax="' . $costWithTax . '">'
-                    .
-                    '</span>';
 
+                if($this->config->get('shipping_meest_express_customer_shipping_pay')){
+                    $priceHtml = '<span class="meest-express-shipping-price" style="color:red" id="meest2-price-' . $service
+                        . '" data-service="' . $service . '" data-cost="' . $serviceCost . '" 
+                    data-cost-with-tax="' . $costWithTax . '">'.$this->language->get('text_meest2_customer_shipping_pay').'!('.$formattedPrice.')</span>';
+                    $serviceCost = 0;
+                    $costWithTax = 0;
+                } else {
+                    $priceHtml = '<span class="meest-express-shipping-price" id="meest2-price-' . $service . '" 
+                    data-service="' . $service . '" data-cost="' . $serviceCost . '"
+                     data-cost-with-tax="' . $costWithTax . '">' . $formattedPrice . '</span>';
+                }
                 $quote_data[$service] = [
                     'code'         => 'meest_express.' . $service,
                     'name'        => $image_html_service . " Meest: " . $this->language->get('text_title_' . $service),
@@ -1162,7 +1166,9 @@ class MeestExpress extends Model
             branch_code = '" . $this->db->escape($data['branch_code']) . "',
             address_code = '" . $this->db->escape($data['address_code']) . "',
             building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
-            region_code = '" . $this->db->escape($data['region_code']) . "'
+            region_code = '" . $this->db->escape($data['region_code']) . "',
+            customer_pay = ".(int)$this->config->get('shipping_meest_express_customer_shipping_pay')."
+
             ON DUPLICATE KEY UPDATE
             shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
             city_code = '" . $this->db->escape($data['city_code']) . "',

@@ -28,6 +28,7 @@ $_['entry_sort_order']        = 'Порядок сортировки';
 $_['entry_service']           = 'Метод доставки';
 $_['entry_free_shipping_enabled']  = 'Бесплатная доставка';
 $_['entry_free_shipping_threshold'] = 'Порог бесплатной доставки (UAH)';
+$_['entry_customer_shipping_pay']     = 'Оплата за доставку производится по получении товара покупателем.';
 
 // Tab
 $_['tab_setting']             = 'Настройки!';

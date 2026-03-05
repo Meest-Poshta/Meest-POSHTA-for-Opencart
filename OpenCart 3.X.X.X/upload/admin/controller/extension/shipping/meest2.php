@@ -260,7 +260,11 @@ class ControllerExtensionShippingMeest2 extends Controller
         } else {
             $data['shipping_meest2_status'] = $this->config->get('shipping_meest2_status');
         }
-
+        if (isset($this->request->post['shipping_meest2_customer_shipping_pay'])) {
+            $data['shipping_meest2_customer_shipping_pay'] = $this->request->post['shipping_meest2_customer_shipping_pay'];
+        } else {
+            $data['shipping_meest2_customer_shipping_pay'] = $this->config->get('shipping_meest2_customer_shipping_pay');
+        }
         if (isset($this->request->post['shipping_meest2_sort_order'])) {
             $data['shipping_meest2_sort_order'] = $this->request->post['shipping_meest2_sort_order'];
         } else {
@@ -1236,7 +1240,6 @@ class ControllerExtensionShippingMeest2 extends Controller
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
-
 
         $this->response->setOutput($this->load->view('extension/shipping/meest2_order_form', $data));
     }

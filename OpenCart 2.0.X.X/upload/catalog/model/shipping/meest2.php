@@ -205,8 +205,17 @@ class ModelShippingMeest2 extends Model {
                     ? 0
                     : $this->currency->format($costWithTax, $this->session->data['currency']);
 
-                $priceHtml = '<span class="meest2-shipping-price" id="meest2-price-' . $service . '" data-service="' . $service . '" data-cost="' . $serviceBaseCost . '" data-cost-with-tax="' . $costWithTax . '">' . $formattedPrice . '</span>';
-
+                if($this->config->get('meest2_customer_shipping_pay')){
+                    $priceHtml = '<span class="meest2-shipping-price" style="color:red" id="meest2-price-' . $service
+                        . '" data-service="' . $service . '" data-cost="' . $serviceBaseCost . '" 
+                    data-cost-with-tax="' . $costWithTax . '">'.$this->language->get('text_meest2_customer_shipping_pay').'!('.$formattedPrice.')</span>';
+                    $serviceBaseCost = 0;
+                    $costWithTax = 0;
+                } else {
+                    $priceHtml = '<span class="meest2-shipping-price" id="meest2-price-' . $service . '" 
+                    data-service="' . $service . '" data-cost="' . $serviceBaseCost . '"
+                     data-cost-with-tax="' . $costWithTax . '">' . $formattedPrice . '</span>';
+                }
                 $quote_data[$service] = array(
                     'code'         => 'meest2.' . $service,
                     'title'        => $image_html_service . " Meest: " . $this->language->get('text_title_' . $service),
@@ -1113,7 +1122,9 @@ class ModelShippingMeest2 extends Model {
             branch_code = '" . $this->db->escape($data['branch_code']) . "',
             address_code = '" . $this->db->escape($data['address_code']) . "',
             building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
-            region_code = '" . $this->db->escape($data['region_code']) . "'
+            region_code = '" . $this->db->escape($data['region_code']) . "',
+            customer_pay = ".(int)$this->config->get('meest2_customer_shipping_pay')."
+
             ON DUPLICATE KEY UPDATE
             shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
             city_code = '" . $this->db->escape($data['city_code']) . "',

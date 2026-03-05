@@ -220,6 +220,12 @@ class ControllerShippingMeest2 extends Controller {
             $data['meest2_status'] = $this->config->get('meest2_status');
         }
 
+        if (isset($this->request->post['meest2_customer_shipping_pay'])) {
+            $data['meest2_customer_shipping_pay'] = $this->request->post['meest2_customer_shipping_pay'];
+        } else {
+            $data['meest2_customer_shipping_pay'] = $this->config->get('meest2_customer_shipping_pay');
+        }
+
         if (isset($this->request->post['meest2_sort_order'])) {
             $data['meest2_sort_order'] = $this->request->post['meest2_sort_order'];
         } else {

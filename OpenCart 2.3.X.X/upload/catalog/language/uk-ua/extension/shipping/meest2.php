@@ -17,6 +17,7 @@ $_['text_meest2_select_postomat']  = 'Поштомату Meest';
 $_['text_meest2_select_shipping_method']  = 'Спосіб доставки';
 $_['text_meest2_house']  = 'буд.';
 $_['text_meest2_flat']  = 'кв.';
+$_['text_meest2_customer_shipping_pay']   = 'Оплата доставки покупцем  при отриманні';
 
 $_['responce_search_city_format_with_district'] = '%s обл., %s р-н, %s';
 $_['responce_search_city_format_without_district'] = '%s обл., %s';

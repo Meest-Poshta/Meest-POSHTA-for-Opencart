@@ -145,6 +145,21 @@
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-2 col-form-label"
+                                       for="input-meest2_customer_shipping_pay"><?php echo $entry_customer_shipping_pay; ?></label>
+                                <div class="col-sm-10">
+                                    <select name="meest2_customer_shipping_pay" id="input-meest2_customer_shipping_pay" class="form-control">
+                                        <?php if ($meest2_customer_shipping_pay) { ?>
+                                        <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
+                                        <option value="0"><?php echo $text_disabled; ?></option>
+                                        <?php } else { ?>
+                                        <option value="1"><?php echo $text_enabled; ?></option>
+                                        <option value="0" selected="selected"><?php echo $text_disabled; ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 col-form-label"
                                        for="input-status"><?php echo $entry_status; ?></label>
                                 <div class="col-sm-10">
                                     <select name="meest2_status" id="input-status" class="form-control">

@@ -440,12 +440,14 @@
                                                 <input type="radio" class="btn-check" name="delivery_payer" value="{{ v.Ref }}" id="input-delivery_payer-{{ v.Ref }}" disabled>
                                                 <label class="btn btn-outline-secondary" for="input-delivery_payer-{{ v.Ref }}">{{ v.Description }}</label>
                                             {% elseif v.Ref == delivery_payer %}
-                                                <input type="radio" class="btn-check" name="delivery_payer" value="{{ v.Ref }}" id="input-delivery_payer-{{ v.Ref }}" checked>
+                                                <input type="radio" class="btn-check" name="delivery_payer" value="{{ v.Ref }}" id="input-delivery_payer-{{ v.Ref }}" {% if not order_shipping_data.customer_pay %}checked{% endif %}>
                                                 <label class="btn btn-outline-primary" for="input-delivery_payer-{{ v.Ref }}">{{ v.Description }}</label>
+
                                             {% else %}
-                                                <input type="radio" class="btn-check" name="delivery_payer" value="{{ v.Ref }}" id="input-delivery_payer-{{ v.Ref }}">
-                                                <label class="btn btn-outline-primary" for="input-delivery_payer-{{ v.Ref }}">{{ v.Description }}</label>
+                                                <input type="radio" class="btn-check" name="delivery_payer" value="{{ v.Ref }}" id="input-delivery_payer-{{ v.Ref }}" {% if  order_shipping_data.customer_pay %}checked{% endif %}>
+                                                <label class="btn btn-outline-primary" for="input-delivery_payer-{{ v.Ref }}" >{{ v.Description }}</label>
                                             {% endif %}
+
                                         {% endfor %}
                                     </div>
                                 </div>

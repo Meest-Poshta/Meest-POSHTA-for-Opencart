@@ -204,6 +204,10 @@ class ModelExtensionShippingMeest2 extends Model {
             if (!$column->num_rows) {
                 $this->db->query("ALTER TABLE `" . DB_PREFIX . "meest2_order_shipping_data` ADD `building` VARCHAR(100) DEFAULT NULL AFTER `address_code`;");
             }
+            $column = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "meest2_order_shipping_data` LIKE 'customer_pay';");
+            if (!$column->num_rows) {
+                $this->db->query("ALTER TABLE `" . DB_PREFIX . "meest2_order_shipping_data` ADD `customer_pay` TINYINT DEFAULT 0 AFTER `address_code`;");
+            }
 
             $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "meest2_parcels` (
                   `id` INT(11) NOT NULL AUTO_INCREMENT,

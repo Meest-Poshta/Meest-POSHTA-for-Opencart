@@ -17,6 +17,7 @@ $_['text_meest2_select_postomat']  = 'Meest postomat';
 $_['text_meest2_select_shipping_method']  = 'Shipping method';
 $_['text_meest2_house']  = 'h.';
 $_['text_meest2_flat']   = 'fl.';
+$_['text_meest2_customer_shipping_pay']   = 'Payment for delivery by the buyer upon receipt';
 
 $_['responce_search_city_format_with_district'] = '%s region, %s district, %s';
 $_['responce_search_city_format_without_district'] = '%s region, %s';
