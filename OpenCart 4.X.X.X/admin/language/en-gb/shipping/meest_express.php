@@ -46,6 +46,7 @@ $_['entry_branch'] = 'Branch';
 $_['entry_free_shipping_enabled'] = 'Enable Free Shipping';
 $_['entry_free_shipping_threshold'] = 'Free Shipping Threshold';
 $_['help_free_shipping_threshold'] = 'Minimum order amount for free shipping';
+$_['entry_customer_shipping_pay']     = 'Payment for delivery upon receipt by the buyer';
 
 // Database
 $_['entry_type_of_data'] = 'Type of Data';

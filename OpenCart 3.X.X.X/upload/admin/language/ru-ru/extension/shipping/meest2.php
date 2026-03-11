@@ -51,6 +51,8 @@ $_['entry_amount']            = 'Сумма';
 $_['entry_description']       = 'Описание';
 $_['entry_action']            = 'Действие';
 $_['entry_contract_id']       = 'ID контракта';
+$_['entry_customer_shipping_pay']     = 'Оплата за доставку производится по получении товара покупателем.';
+
 
 $_['tab_database']            = 'База данных';
 $_['tab_sender']              = 'Отправитель';

@@ -63,6 +63,7 @@ $_['entry_sort_order']        = 'Sort order';
 $_['entry_service']           = 'Delivery method';
 $_['entry_free_shipping_enabled']  = 'Free shipping';
 $_['entry_free_shipping_threshold'] = 'Free shipping threshold (UAH)';
+$_['entry_customer_shipping_pay']     = 'Payment for delivery upon receipt by the buyer';
 
 $_['tab_setting']             = 'Setting';
 $_['tab_service']             = 'Service';

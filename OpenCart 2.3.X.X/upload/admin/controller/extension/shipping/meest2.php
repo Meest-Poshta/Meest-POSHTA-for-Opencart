@@ -202,7 +202,11 @@ class ControllerExtensionShippingMeest2 extends Controller {
 		} else {
 			$data['meest2_status'] = $this->config->get('meest2_status');
 		}
-
+        if (isset($this->request->post['meest2_customer_shipping_pay'])) {
+            $data['meest2_customer_shipping_pay'] = $this->request->post['meest2_customer_shipping_pay'];
+        } else {
+            $data['meest2_customer_shipping_pay'] = $this->config->get('meest2_customer_shipping_pay');
+        }
 		if (isset($this->request->post['meest2_sort_order'])) {
 			$data['meest2_sort_order'] = $this->request->post['meest2_sort_order'];
 		} else {
@@ -245,7 +249,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
 		];
 		$data['branches'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/branches','token=' . $this->session->data['token'],true));
 		$data['branchesUpdate'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/branchesUpdate','token=' . $this->session->data['token'],true));
-
+        $data['importDistricts'] = str_replace('&amp;', '&', $this->url->link('extension/shipping/meest2/importDistricts', 'token=' . $this->session->data['token'], true));
         $data['importBranches'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/importBranches','token=' . $this->session->data['token'],true));
         $data['importRegions'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/importRegions', 'token=' . $this->session->data['token'], true));
         $data['importCity'] = str_replace('&amp;','&',$this->url->link('extension/shipping/meest2/importCity', 'token=' . $this->session->data['token'], true));
@@ -264,6 +268,7 @@ class ControllerExtensionShippingMeest2 extends Controller {
         $data['regions_import_info'] = $this->model_extension_shipping_meest2->getRegionsTotalRecordsAndLatestDate();
         $data['cities_import_info'] = $this->model_extension_shipping_meest2->getCitiesTotalRecordsAndLatestDate();
         $data['streets_import_info'] = $this->model_extension_shipping_meest2->getStreetsTotalRecordsAndLatestDate();
+        $data['district_import_info'] = $this->model_extension_shipping_meest2->getDistrictTotalRecordsAndLatestDate();
 
         $data['regions'] = $this->model_extension_shipping_meest2->getRegions();
 //        $data['cities'] = $this->model_extension_shipping_meest2->getCities();//[];
@@ -357,6 +362,40 @@ class ControllerExtensionShippingMeest2 extends Controller {
 
 		return !$this->error;
 	}
+    public function importDistricts()
+    {
+
+        $this->load->model('extension/shipping/meest2');
+        $regions = $this->model_extension_shipping_meest2->getRegions();
+        foreach ($regions as $region) {
+
+
+            try {
+                $url = 'https://api.meest.com/v3.0/openAPI/districtSearch';
+
+                $data = [
+                    "filters" => [
+                        'regionID' => $region['region_id'],
+                    ]
+                ];
+
+                $response = $this->meestApiV3($url, $data);
+
+                $responseData = json_decode($response, true);
+                if (!isset($responseData['status']) || $responseData['status'] !== "OK") {
+                    throw new Exception('API Error: ' . json_encode($responseData, JSON_UNESCAPED_UNICODE));
+                }
+
+                $resultData = $this->model_extension_shipping_meest2->saveDistricts($responseData['result']);
+
+                $json = ['success' => true, 'data' => $resultData];
+            } catch (Exception $e) {
+                $json = ['success' => false, 'error' => $e->getMessage()];
+            }
+        }
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE));
+    }
 
     public function importRegions() {
 

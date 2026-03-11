@@ -61,7 +61,29 @@ function updateRegions() {
         });
     }
 }
-
+function updateDistricts() {
+    if (confirm('This operation may take three hours. Are you sure you want to continue?')) {
+        $.ajax({
+            url: window.meest2Urls.importDistricts,
+            beforeSend: function () {
+                showLoader('Districts are updating...');
+            },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success) {
+                    alert('Districts updated successfully!');
+                } else {
+                    alert('Error: ' + (response.error || 'Unknown error'));
+                }
+                removeLoader();
+            },
+            error: function (jqXHR, exception) {
+                alert(getAjaxErrorMessage(jqXHR, exception));
+                removeLoader();
+            }
+        });
+    }
+}
 function updateCities() {
     if (confirm('This operation may take some time. Are you sure you want to continue?')) {
         $.ajax({

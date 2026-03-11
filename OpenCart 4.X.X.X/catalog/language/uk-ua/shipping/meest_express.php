@@ -8,6 +8,7 @@ $_['text_title_postomat'] = 'Поштомат';
 $_['text_title_courier'] = 'Кур\'єр';
 $_['error_not_enabled'] = 'Доставка Meest Express не увімкнена';
 $_['error_api_credentials'] = 'API облікові дані Meest Express не налаштовані';
+$_['text_meest2_customer_shipping_pay']   = 'Оплата доставки покупцем  при отриманні';
 
 // Text
 $_['text_title'] = 'Meest Express';

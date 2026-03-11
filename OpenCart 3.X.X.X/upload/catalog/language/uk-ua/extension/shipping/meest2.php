@@ -19,6 +19,7 @@ $_['text_meest2_house']  = 'буд.';
 $_['text_meest2_flat']  = 'кв.';
 $_['text_meest2_map']  = 'Мапа';
 $_['text_meest2_select_on_map']  = 'Оберіть відділення на мапі';
+$_['text_meest2_customer_shipping_pay']   = 'Оплата доставки покупцем  при отриманні';
 
 $_['responce_search_city_format_with_district'] = '%s обл., %s р-н, %s';
 $_['responce_search_city_format_without_district'] = '%s обл., %s';

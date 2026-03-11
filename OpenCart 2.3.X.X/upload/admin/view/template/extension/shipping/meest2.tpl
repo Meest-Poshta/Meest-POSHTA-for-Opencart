@@ -145,6 +145,21 @@
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-2 col-form-label"
+                                       for="input-meest2_customer_shipping_pay"><?php echo $entry_customer_shipping_pay; ?></label>
+                                <div class="col-sm-10">
+                                    <select name="meest2_customer_shipping_pay" id="input-meest2_customer_shipping_pay" class="form-control">
+                                        <?php if ($meest2_customer_shipping_pay) { ?>
+                                        <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
+                                        <option value="0"><?php echo $text_disabled; ?></option>
+                                        <?php } else { ?>
+                                        <option value="1"><?php echo $text_enabled; ?></option>
+                                        <option value="0" selected="selected"><?php echo $text_disabled; ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 col-form-label"
                                        for="input-status"><?php echo $entry_status; ?></label>
                                 <div class="col-sm-10">
                                     <select name="meest2_status" id="input-status" class="form-control">
@@ -272,7 +287,19 @@
                             </a>
                         </div>
                     </div>
-
+                    <div class="custom-table-row">
+                        <div>District</div>
+                        <div><?php echo $district_import_info['latest_update_date']; ?></div>
+                        <div><?php echo $district_import_info['total_records']; ?></div>
+                        <div>It will be updated regions list of the postal company. The action will not affect the
+                            standard districts
+                        </div>
+                        <div>
+                            <a onclick="updateDistricts()" id="button-update_region" data-toggle="tooltip" title="Refresh" class="btn btn-icon">
+                                <i class="fa fa-refresh"></i>
+                            </a>
+                        </div>
+                    </div>
                     <div class="custom-table-row">
                         <div>City</div>
                         <div><?php echo $cities_import_info['latest_update_date']; ?></div>
@@ -536,6 +563,7 @@
         importBranches: "<?php echo $importBranches; ?>",
         importRegions: "<?php echo $importRegions; ?>",
         importCity: "<?php echo $importCity; ?>",
+        importDistricts: "<?php echo $importDistricts; ?>",
         importStreets: "<?php echo $importStreets; ?>",
         addContract: "<?php echo $addContract; ?>",
         deleteContract: "<?php echo $deleteContract; ?>",

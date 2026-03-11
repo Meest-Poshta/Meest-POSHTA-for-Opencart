@@ -450,13 +450,13 @@
                                                     <input type="radio" name="delivery_payer" value="<?php echo $v['Ref']; ?>" id="input-delivery_payer-<?php echo $v['Ref']; ?>"><?php echo $v['Description']; ?>
                                                 </label>
                                             <?php } elseif ($v['Ref'] == 'Sender' && $first) { ?>
-                                                <label class="btn btn-default active">
-                                                    <input type="radio" name="delivery_payer" value="<?php echo $v['Ref']; ?>" id="input-delivery_payer-<?php echo $v['Ref']; ?>" checked><?php echo $v['Description']; ?>
+                                                <label class="btn btn-default <?php if( isset($order_shipping_data['customer_pay']) && !$order_shipping_data['customer_pay']){ ?>active<?php } ?>">
+                                                    <input type="radio" name="delivery_payer" value="<?php echo $v['Ref']; ?>" id="input-delivery_payer-<?php echo $v['Ref']; ?>" <?php if( isset($order_shipping_data['customer_pay']) && !$order_shipping_data['customer_pay']){ ?>checked<?php } ?>><?php echo $v['Description']; ?>
                                                 </label>
                                                 <?php $first = false; ?>
                                             <?php } else { ?>
-                                                <label class="btn btn-default">
-                                                    <input type="radio" name="delivery_payer" value="<?php echo $v['Ref']; ?>" id="input-delivery_payer-<?php echo $v['Ref']; ?>"><?php echo $v['Description']; ?>
+                                                <label class="btn btn-default <?php if( isset($order_shipping_data['customer_pay']) && $order_shipping_data['customer_pay']){ ?>active<?php } ?>">
+                                                    <input type="radio" name="delivery_payer" value="<?php echo $v['Ref']; ?>" id="input-delivery_payer-<?php echo $v['Ref']; ?>" <?php if( isset($order_shipping_data['customer_pay']) && $order_shipping_data['customer_pay']){ ?>checked<?php } ?>><?php echo $v['Description']; ?>
                                                 </label>
                                             <?php } ?>
                                         <?php } ?>

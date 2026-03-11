@@ -223,7 +223,9 @@ class ModelExtensionShippingMeest2 extends Model {
                 } else {
                     $errorData = ($receiverMethod === $service && !empty($errorMessage)) ? $errorMessage : false;
                 }
-
+                if($service == 'courier'){
+                    $isFreeShipping = 0;
+                }
                 $serviceBaseCost = $isFreeShipping ? 0 : (isset($costs[$service]) ? $costs[$service] : 0);
                 
                 // Ensure it's a valid number
@@ -239,8 +241,17 @@ class ModelExtensionShippingMeest2 extends Model {
                     ? ''
                     : $this->currency->format($costWithTax, $this->session->data['currency']);
 
-                $priceHtml = '<span class="meest2-shipping-price" id="meest2-price-' . $service . '" data-service="' . $service . '" data-cost="' . $serviceBaseCost . '" data-cost-with-tax="' . $costWithTax . '">'  . '</span>';
-
+                if($this->config->get('shipping_meest2_customer_shipping_pay')){
+                    $priceHtml = '<span class="meest2-shipping-price" style="color:red" id="meest2-price-' . $service
+                        . '" data-service="' . $service . '" data-cost="' . $serviceBaseCost . '" 
+                    data-cost-with-tax="' . $costWithTax . '">'.$this->language->get('text_meest2_customer_shipping_pay').'!('.$formattedPrice.')</span>';
+                    $serviceBaseCost = 0;
+                    $costWithTax = 0;
+                } else {
+                    $priceHtml = '<span class="meest2-shipping-price" id="meest2-price-' . $service . '" 
+                    data-service="' . $service . '" data-cost="' . $serviceBaseCost . '" 
+                    data-cost-with-tax="' . $costWithTax . '">' . $formattedPrice . '</span>';
+                }
                 $quote_data[$service] = [
                     'code'         => 'meest2.' . $service,
                     'title'        => $image_html_service . " Meest: " . $this->language->get('text_title_' . $service),
@@ -275,13 +286,15 @@ class ModelExtensionShippingMeest2 extends Model {
 
     public function getCities($region_id, $search = '')
     {
-        $sql = "SELECT 
+        $sql = "SELECT
             c.`city_id` AS id,
             c.`type_ua` AS type,
             c.`name_ua` AS name,
-            r.`region_name_ua` AS region
+            r.`region_name_ua` AS region,
+            d.`district_ua` AS district
         FROM `" . DB_PREFIX . "meest2_cities` c
         LEFT JOIN `" . DB_PREFIX . "meest2_regions` r ON c.`region_id` = r.`region_id`
+        LEFT JOIN `" . DB_PREFIX . "meest2_district` d ON d.`district_id` = c.`district_id`
         WHERE 1";
 
         if ($region_id) {
@@ -1266,7 +1279,9 @@ class ModelExtensionShippingMeest2 extends Model {
             branch_code = '" . $this->db->escape($data['branch_code']) . "',
             address_code = '" . $this->db->escape($data['address_code']) . "',
             building = '" . $this->db->escape(isset($data['building']) ? $data['building'] : '') . "',
-            region_code = '" . $this->db->escape($data['region_code']) . "'
+            region_code = '" . $this->db->escape($data['region_code']) . "',
+            customer_pay = ".(int)$this->config->get('meest2_customer_shipping_pay')."
+
             ON DUPLICATE KEY UPDATE
             shipping_method = '" . $this->db->escape($data['shipping_method']) . "',
             city_code = '" . $this->db->escape($data['city_code']) . "',

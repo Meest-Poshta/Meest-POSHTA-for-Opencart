@@ -313,7 +313,7 @@ if (!window.meest2Loaded) {
                         .done(function (json) {
                             response($.map(json, function (item) {
                                 return {
-                                    label: `${item.type} ${item.name}, ${item.region}`,
+                                    label: `${item.type} ${item.name}, ${item.region} обл ( ${item.district} р-н)`,
                                     city: item.name,
                                     value: item.id
                                 };
@@ -1056,7 +1056,8 @@ if (!window.meest2Loaded) {
 
         // Сначала проверяем город
         if (currentCityInput && currentCityInput.is(':focus')) {
-            const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            // const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            const cityName = text;
 
             currentCityInput
                 .val(cityName)

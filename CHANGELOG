@@ -1,0 +1,11 @@
+### 1.3.3 - 05.03.2026
+
+ * Added changes to the Payer for delivery services to the front
+
+### 1.3.2 - 26.02.2026
+
+ * fix(shipping): disable courier delivery  free shipping
+
+### 1.3.1 - 26.02.2026
+
+ * added district loader

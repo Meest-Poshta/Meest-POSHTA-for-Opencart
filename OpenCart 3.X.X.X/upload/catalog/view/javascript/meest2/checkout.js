@@ -310,7 +310,7 @@ if (!window.meest2Loaded) {
                         .done(function (json) {
                             response($.map(json, function (item) {
                                 return {
-                                    label: `${item.type} ${item.name}, ${item.region}`,
+                                    label: `${item.type} ${item.name}, ${item.region} обл ( ${item.district} р-н)`,
                                     city: item.name,
                                     value: item.id
                                 };
@@ -333,9 +333,9 @@ if (!window.meest2Loaded) {
                     }
 
                     $input
-                        .val(ui.item.city)
+                        .val(ui.item.label)
                         .attr('data-city-id', ui.item.value)
-                        .attr('data-address', ui.item.city);
+                        .attr('data-address', ui.item.label);
 
                     // Удаляем временные элементы
                     $('#meest-tmp').remove();
@@ -997,10 +997,10 @@ if (!window.meest2Loaded) {
 
             // Парсим название города из текста
             // Формат: "місто Харків, ХАРКІВСЬКА" -> "Харків"
-            const parts = text.split(',');
-            const cityPart = parts[0] || '';
-            const cityName = cityPart.replace(/^(місто|село|смт)\s+/i, '').trim();
-
+            // const parts = text.split(',');
+            // const cityPart = parts[0] || '';
+            // const cityName = cityPart.replace(/^(місто|село|смт)\s+/i, '').trim();
+            const cityName = text;
             if (!cityName) {
                 return;
             }
@@ -1053,7 +1053,8 @@ if (!window.meest2Loaded) {
 
         // Сначала проверяем город
         if (currentCityInput && currentCityInput.is(':focus')) {
-            const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            // const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            const cityName = text;
 
             currentCityInput
                 .val(cityName)

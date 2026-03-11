@@ -8,6 +8,7 @@ $_['text_title_postomat'] = 'Postomat';
 $_['text_title_courier'] = 'Courier';
 $_['error_not_enabled'] = 'Meest Express shipping is not enabled';
 $_['error_api_credentials'] = 'Meest Express API credentials are not configured';
+$_['text_meest2_customer_shipping_pay']   = 'Payment for delivery by the buyer upon receipt';
 
 $_['text_title'] = 'Meest Express';
 $_['text_description'] = 'Meest Express Shipping';

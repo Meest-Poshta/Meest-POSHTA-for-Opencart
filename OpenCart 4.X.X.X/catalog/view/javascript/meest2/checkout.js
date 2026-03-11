@@ -480,7 +480,7 @@ if (!window.meest_expressLoaded) {
 
                             // Добавляем элементы
                             $.each(json, function (index, item) {
-                                const label = `${item.type} ${item.name}, ${item.region}`;
+                                const label = `${item.type} ${item.name}, ${item.region} обл ( ${item.district} р-н)`;
                                 const $li = $('<li data-value="' + item.id + '"></li>');
                                 $li.css({ padding: 0, margin: 0, listStyle: 'none' });
 
@@ -1344,7 +1344,8 @@ if (!window.meest_expressLoaded) {
 
         // Сначала проверяем город
         if (currentCityInput && currentCityInput.is(':focus')) {
-            const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            // const cityName = text.split(',')[0].replace(/^(місто|село|смт)\s+/i, '').trim();
+            const cityName = text;
 
             currentCityInput
                 .val(cityName)
